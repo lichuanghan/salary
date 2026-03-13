@@ -24,6 +24,7 @@ fn main() {
             commands::update_employee,
             commands::delete_employee,
             commands::calculate_salary,
+            commands::batch_calculate_salary,
             commands::save_attendance,
             commands::get_attendances,
             commands::batch_import_employees,

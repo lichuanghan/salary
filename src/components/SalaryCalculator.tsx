@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Employee, SalaryResult } from '../types'
 
 interface SalaryCalculatorProps {
@@ -5,10 +6,12 @@ interface SalaryCalculatorProps {
   selectedEmployee: Employee | null
   yearMonth: string
   salaryResult: SalaryResult | null
+  salaryList: SalaryResult[]
   onSelectEmployee: (employee: Employee | null) => void
+  onSelectEmployees: (employeeIds: number[]) => void
   onYearMonthChange: (yearMonth: string) => void
-  onOpenAttendance: () => void
   onCalculate: () => void
+  onBatchCalculate: (employeeIds: number[]) => void
 }
 
 export function SalaryCalculator({
@@ -16,13 +19,40 @@ export function SalaryCalculator({
   selectedEmployee,
   yearMonth,
   salaryResult,
+  salaryList,
   onSelectEmployee,
+  onSelectEmployees,
   onYearMonthChange,
-  onOpenAttendance,
-  onCalculate
+  onCalculate,
+  onBatchCalculate
 }: SalaryCalculatorProps) {
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [showMultiSelect, setShowMultiSelect] = useState(false)
+
+  const handleCheckAll = () => {
+    if (selectedIds.length === employees.length) {
+      setSelectedIds([])
+      onSelectEmployees([])
+    } else {
+      const allIds = employees.map(e => e.id!).filter(id => id !== undefined)
+      setSelectedIds(allIds)
+      onSelectEmployees(allIds)
+    }
+  }
+
+  const handleToggleEmployee = (id: number) => {
+    let newIds: number[]
+    if (selectedIds.includes(id)) {
+      newIds = selectedIds.filter(i => i !== id)
+    } else {
+      newIds = [...selectedIds, id]
+    }
+    setSelectedIds(newIds)
+    onSelectEmployees(newIds)
+  }
+
   return (
-    <div className="card" style={{ padding: '24px' }}>
+    <div>
       <h2 className="text-lg font-semibold mb-6" style={{ color: 'var(--color-text-primary)' }}>
         工资核算
       </h2>
@@ -46,62 +76,130 @@ export function SalaryCalculator({
           />
         </div>
 
-        {/* 员工选择 */}
-        <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: 'var(--color-text-secondary)' }}
+        {/* 切换单选/多选模式 */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => { setShowMultiSelect(false); setSelectedIds([]) }}
+            className={`btn btn-sm ${!showMultiSelect ? 'btn-primary' : 'btn-secondary'}`}
           >
-            选择员工
-          </label>
-          <select
-            value={selectedEmployee?.id || ''}
-            onChange={(e) => {
-              const emp = employees.find((em) => em.id === Number(e.target.value))
-              onSelectEmployee(emp || null)
-            }}
-            className="input select"
-            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+            单选模式
+          </button>
+          <button
+            onClick={() => { setShowMultiSelect(true); onSelectEmployee(null) }}
+            className={`btn btn-sm ${showMultiSelect ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <option value="">请选择员工</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name}
-              </option>
-            ))}
-          </select>
+            多选模式
+          </button>
         </div>
+
+        {/* 单选模式 */}
+        {!showMultiSelect && (
+          <div>
+            <label
+              className="block text-sm font-medium mb-2"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              选择员工
+            </label>
+            <select
+              value={selectedEmployee?.id || ''}
+              onChange={(e) => {
+                console.log('[SalaryCalculator] 选择员工, value:', e.target.value)
+                const emp = employees.find((em) => em.id === Number(e.target.value))
+                console.log('[SalaryCalculator] 找到员工:', emp)
+                onSelectEmployee(emp || null)
+              }}
+              className="input select"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                pointerEvents: 'auto',
+                position: 'relative',
+                zIndex: 100
+              }}
+            >
+              <option value="">请选择员工</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name} {emp.employee_no ? `(${emp.employee_no})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 多选模式 */}
+        {showMultiSelect && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label
+                className="block text-sm font-medium"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                选择员工 (已选 {selectedIds.length} 人)
+              </label>
+              <button
+                onClick={handleCheckAll}
+                className="btn btn-sm btn-secondary"
+              >
+                {selectedIds.length === employees.length ? '取消全选' : '全选'}
+              </button>
+            </div>
+            <div
+              className="grid grid-cols-2 gap-2 p-3 rounded-lg"
+              style={{ backgroundColor: 'var(--color-bg-secondary)', maxHeight: '200px', overflowY: 'auto' }}
+            >
+              {employees.map((emp) => (
+                <label
+                  key={emp.id}
+                  className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(emp.id!)}
+                    onChange={() => handleToggleEmployee(emp.id!)}
+                    className="w-4 h-4"
+                  />
+                  <span style={{ color: 'var(--color-text-primary)' }}>
+                    {emp.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 操作按钮 */}
         <div className="flex gap-3">
-          <button
-            onClick={onOpenAttendance}
-            disabled={!selectedEmployee}
-            className="btn btn-secondary flex-1"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            录入考勤
-          </button>
-          <button
-            onClick={onCalculate}
-            disabled={!selectedEmployee}
-            className="btn btn-primary flex-1"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" />
-            </svg>
-            计算工资
-          </button>
+          {!showMultiSelect ? (
+            <>
+              <button
+                onClick={onCalculate}
+                disabled={!selectedEmployee}
+                className="btn btn-primary flex-1"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" />
+                </svg>
+                计算工资
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => onBatchCalculate(selectedIds)}
+              disabled={selectedIds.length === 0}
+              className="btn btn-primary flex-1"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" />
+              </svg>
+              批量计算 ({selectedIds.length} 人)
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 计算结果 */}
-      {salaryResult && (
+      {/* 单个计算结果 */}
+      {salaryResult && !showMultiSelect && (
         <div
           className="mt-8 p-6 rounded-2xl animate-scale"
           style={{
@@ -185,6 +283,77 @@ export function SalaryCalculator({
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 批量计算结果列表 */}
+      {salaryList.length > 0 && showMultiSelect && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              工资计算结果 ({salaryList.length} 人)
+            </h3>
+            <span
+              className="badge"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-accent) 0%, #a07408 100%)',
+                color: 'white',
+                padding: '6px 12px'
+              }}
+            >
+              {yearMonth} 月
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>员工姓名</th>
+                  <th style={{ textAlign: 'right' }}>固定薪酬</th>
+                  <th style={{ textAlign: 'right' }}>绩效薪酬</th>
+                  <th style={{ textAlign: 'right' }}>考勤扣款</th>
+                  <th style={{ textAlign: 'right' }}>实发工资</th>
+                </tr>
+              </thead>
+              <tbody>
+                {salaryList.map((item) => (
+                  <tr key={item.employee_id}>
+                    <td className="font-medium">{item.employee_name}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      ¥{item.fixed_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      ¥{item.performance_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ textAlign: 'right', color: item.attendance_deduction > 0 ? 'var(--color-danger)' : 'inherit' }}>
+                      {item.attendance_deduction > 0 ? `-¥${item.attendance_deduction.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '-'}
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-accent)' }}>
+                      ¥{item.net_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: 'var(--color-bg-secondary)' }}>
+                  <td className="font-semibold">合计</td>
+                  <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                    ¥{salaryList.reduce((sum, item) => sum + item.fixed_salary, 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                    ¥{salaryList.reduce((sum, item) => sum + item.performance_salary, 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-danger)' }}>
+                    -¥{salaryList.reduce((sum, item) => sum + item.attendance_deduction, 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-accent)', fontSize: '16px' }}>
+                    ¥{salaryList.reduce((sum, item) => sum + item.net_salary, 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
       )}

@@ -1,24 +1,14 @@
 import { useState, useEffect } from 'react'
-import { SalaryCalculator, AttendanceForm } from '../components'
+import { SalaryCalculator } from '../components'
 import * as api from '../hooks/api'
-import type { Employee, Attendance, SalaryResult } from '../types'
+import type { Employee, SalaryResult } from '../types'
 
 export function SalaryPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [yearMonth, setYearMonth] = useState('2026-03')
   const [salaryResult, setSalaryResult] = useState<SalaryResult | null>(null)
-  const [showAttendanceModal, setShowAttendanceModal] = useState(false)
-  const [attendanceData, setAttendanceData] = useState<Attendance>({
-    employee_id: 0,
-    year_month: '2026-03',
-    work_days: 23,
-    normal_days: 21,
-    sick_leave_days: 0,
-    late_count: 0,
-    early_leave_count: 0,
-    overtime_hours: 0
-  })
+  const [salaryList, setSalaryList] = useState<SalaryResult[]>([])
 
   useEffect(() => {
     loadEmployees()
@@ -33,36 +23,6 @@ export function SalaryPage() {
     }
   }
 
-  const openAttendanceModal = () => {
-    if (!selectedEmployee) return
-    setAttendanceData({
-      employee_id: selectedEmployee.id || 0,
-      year_month: yearMonth,
-      work_days: 23,
-      normal_days: 21,
-      sick_leave_days: 0,
-      late_count: 0,
-      early_leave_count: 0,
-      overtime_hours: 0
-    })
-    setShowAttendanceModal(true)
-  }
-
-  const handleSaveAttendance = async (data: Attendance) => {
-    if (!selectedEmployee?.id) return
-    try {
-      await api.saveAttendance({
-        ...data,
-        employee_id: selectedEmployee.id,
-        year_month: yearMonth
-      })
-      setShowAttendanceModal(false)
-      handleCalculate()
-    } catch (error) {
-      console.error('保存考勤失败:', error)
-    }
-  }
-
   const handleCalculate = async () => {
     if (!selectedEmployee?.id) return
     try {
@@ -73,8 +33,22 @@ export function SalaryPage() {
     }
   }
 
+  const handleBatchCalculate = async (employeeIds: number[]) => {
+    if (employeeIds.length === 0) return
+    try {
+      const results = await api.batchCalculateSalary(employeeIds, yearMonth)
+      setSalaryList(results)
+    } catch (error) {
+      console.error('批量计算工资失败:', error)
+    }
+  }
+
+  const handleSelectEmployees = (_employeeIds: number[]) => {
+    setSalaryList([])
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ position: 'relative', zIndex: 1 }}>
       {/* 标题 */}
       <div className="animate-scale">
         <h2 className="text-2xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
@@ -86,35 +60,27 @@ export function SalaryPage() {
       </div>
 
       {/* 工资计算器 */}
-      <div className="animate-scale" style={{ animationDelay: '50ms' }}>
-        <div className="card" style={{ padding: '24px' }}>
+      <div className="animate-scale" style={{ animationDelay: '50ms', position: 'relative', zIndex: 1 }}>
+        <div className="card" style={{ padding: '24px', position: 'relative', zIndex: 1 }}>
           <SalaryCalculator
             employees={employees}
             selectedEmployee={selectedEmployee}
             yearMonth={yearMonth}
             salaryResult={salaryResult}
+            salaryList={salaryList}
             onSelectEmployee={(emp) => {
+              console.log('[SalaryPage] onSelectEmployee:', emp)
               setSelectedEmployee(emp)
               setSalaryResult(null)
+              setSalaryList([])
             }}
+            onSelectEmployees={handleSelectEmployees}
             onYearMonthChange={setYearMonth}
-            onOpenAttendance={openAttendanceModal}
             onCalculate={handleCalculate}
+            onBatchCalculate={handleBatchCalculate}
           />
         </div>
       </div>
-
-      {/* 考勤录入弹窗 */}
-      {showAttendanceModal && selectedEmployee && (
-        <AttendanceForm
-          employees={employees}
-          yearMonth={yearMonth}
-          employeeName={selectedEmployee.name}
-          initialData={attendanceData}
-          onSubmit={handleSaveAttendance}
-          onCancel={() => setShowAttendanceModal(false)}
-        />
-      )}
     </div>
   )
 }

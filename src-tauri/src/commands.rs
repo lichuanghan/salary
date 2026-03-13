@@ -69,10 +69,15 @@ pub struct Attendance {
 pub struct SalaryResult {
     pub employee_id: i64,
     pub employee_name: String,
+    pub year_month: String,
     pub fixed_salary: f64,
     pub performance_salary: f64,
+    pub late_deduction: f64,
+    pub early_leave_deduction: f64,
+    pub overtime_allowance: f64,
     pub attendance_deduction: f64,
-    pub monthly_salary: f64,
+    pub gross_salary: f64,
+    pub net_salary: f64,
 }
 
 #[tauri::command]
@@ -239,14 +244,100 @@ pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i6
     let attendance_deduction = sick_leave_days * daily_rate;
     let monthly_salary = employee.fixed_salary + employee.performance_salary - attendance_deduction;
 
+    let gross_salary = employee.fixed_salary + employee.performance_salary;
+    let net_salary = gross_salary - attendance_deduction;
+
     Ok(SalaryResult {
         employee_id,
         employee_name: employee.name,
+        year_month: year_month.clone(),
         fixed_salary: employee.fixed_salary,
         performance_salary: employee.performance_salary,
+        late_deduction: 0.0,
+        early_leave_deduction: 0.0,
+        overtime_allowance: 0.0,
         attendance_deduction,
-        monthly_salary,
+        gross_salary,
+        net_salary,
     })
+}
+
+#[tauri::command]
+pub fn batch_calculate_salary(state: tauri::State<super::db::DbState>, employee_ids: Vec<i64>, year_month: String) -> Result<Vec<SalaryResult>, String> {
+    println!("[batch_calculate_salary] 收到请求, employee_ids: {:?}, year_month: {}", employee_ids, year_month);
+    let conn = super::db::get_connection(&state).map_err(|e| {
+        println!("[batch_calculate_salary] 获取连接失败: {}", e);
+        e.to_string()
+    })?;
+
+    let mut results: Vec<SalaryResult> = Vec::new();
+
+    for employee_id in employee_ids {
+        // 获取员工信息
+        let employee: Employee = match conn.query_row(
+            "SELECT id, employee_no, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE id = ?1",
+            params![employee_id],
+            |row| {
+                Ok(Employee {
+                    id: Some(row.get(0)?),
+                    employee_no: row.get(1)?,
+                    name: row.get(2)?,
+                    id_card: row.get(3)?,
+                    city: row.get(4)?,
+                    department: row.get(5)?,
+                    position: row.get(6)?,
+                    entry_date: row.get(7)?,
+                    fixed_salary: row.get(8)?,
+                    performance_salary: row.get(9)?,
+                    status: row.get(10)?,
+                })
+            },
+        ) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        // 获取考勤信息
+        let attendance: Option<Attendance> = conn.query_row(
+            "SELECT id, employee_id, year_month, work_days, normal_days, sick_leave_days, COALESCE(late_count, 0), COALESCE(early_leave_count, 0), COALESCE(overtime_hours, 0) FROM attendance WHERE employee_id = ?1 AND year_month = ?2",
+            params![employee_id, &year_month],
+            |row| {
+                Ok(Attendance {
+                    id: Some(row.get(0)?),
+                    employee_id: row.get(1)?,
+                    year_month: row.get(2)?,
+                    work_days: row.get(3)?,
+                    normal_days: row.get(4)?,
+                    sick_leave_days: row.get(5)?,
+                    late_count: row.get(6)?,
+                    early_leave_count: row.get(7)?,
+                    overtime_hours: row.get(8)?,
+                })
+            },
+        ).ok();
+
+        // 计算工资
+        let daily_rate = employee.fixed_salary / 21.75;
+        let sick_leave_days = attendance.as_ref().map(|a| a.sick_leave_days).unwrap_or(0.0);
+        let attendance_deduction = sick_leave_days * daily_rate;
+        let monthly_salary = employee.fixed_salary + employee.performance_salary - attendance_deduction;
+
+        results.push(SalaryResult {
+            employee_id,
+            employee_name: employee.name,
+            year_month: year_month.clone(),
+            fixed_salary: employee.fixed_salary,
+            performance_salary: employee.performance_salary,
+            late_deduction: 0.0,
+            early_leave_deduction: 0.0,
+            overtime_allowance: 0.0,
+            attendance_deduction,
+            gross_salary: employee.fixed_salary + employee.performance_salary,
+            net_salary: monthly_salary,
+        });
+    }
+
+    Ok(results)
 }
 
 #[tauri::command]

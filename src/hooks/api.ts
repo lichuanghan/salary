@@ -75,3 +75,7 @@ export async function batchImportEmployees(employees: EmployeeImport[]): Promise
 export async function batchImportAttendances(attendances: AttendanceImport[]): Promise<BatchImportResult> {
   return invoke<BatchImportResult>('batch_import_attendances', { attendances })
 }
+
+export async function batchCalculateSalary(employeeIds: number[], yearMonth: string): Promise<SalaryResult[]> {
+  return invoke<SalaryResult[]>('batch_calculate_salary', { employeeIds, yearMonth })
+}
