@@ -7,6 +7,7 @@ export function EmployeePage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
 
   useEffect(() => {
     loadEmployees()
@@ -28,6 +29,16 @@ export function EmployeePage() {
       loadEmployees()
     } catch (error) {
       console.error('添加员工失败:', error)
+    }
+  }
+
+  const handleEditEmployee = async (data: Employee) => {
+    try {
+      await api.updateEmployee(data)
+      setEditingEmployee(null)
+      loadEmployees()
+    } catch (error) {
+      console.error('更新员工失败:', error)
     }
   }
 
@@ -62,6 +73,7 @@ export function EmployeePage() {
             employees={employees}
             selectedId={selectedEmployee?.id}
             onSelect={setSelectedEmployee}
+            onEdit={(emp) => setEditingEmployee(emp)}
             onDelete={handleDeleteEmployee}
             onAdd={() => setShowModal(true)}
           />
@@ -73,6 +85,15 @@ export function EmployeePage() {
         <EmployeeForm
           onSubmit={handleAddEmployee}
           onCancel={() => setShowModal(false)}
+        />
+      )}
+
+      {/* 编辑员工弹窗 */}
+      {editingEmployee && (
+        <EmployeeForm
+          initialData={editingEmployee}
+          onSubmit={handleEditEmployee}
+          onCancel={() => setEditingEmployee(null)}
         />
       )}
     </div>
