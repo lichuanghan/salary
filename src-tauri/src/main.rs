@@ -23,6 +23,7 @@ fn main() {
             commands::delete_employee,
             commands::calculate_salary,
             commands::save_attendance,
+            commands::batch_import_employees,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

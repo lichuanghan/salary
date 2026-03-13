@@ -17,6 +17,28 @@ pub struct Employee {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct EmployeeImport {
+    pub employee_no: String,
+    pub name: String,
+    pub fixed_salary: f64,
+    pub performance_salary: f64,
+    pub entry_date: String,
+    pub status: String,
+    pub id_card: Option<String>,
+    pub city: Option<String>,
+    pub department: Option<String>,
+    pub position: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatchImportResult {
+    pub total: i32,
+    pub success: i32,
+    pub failed: i32,
+    pub messages: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Attendance {
     pub id: Option<i64>,
     pub employee_id: i64,
@@ -234,4 +256,105 @@ pub fn get_attendances(state: tauri::State<super::db::DbState>, year_month: Stri
         .map_err(|e| e.to_string())?;
 
     Ok(attendances)
+}
+
+#[tauri::command]
+pub fn batch_import_employees(
+    state: tauri::State<super::db::DbState>,
+    employees: Vec<EmployeeImport>,
+) -> Result<BatchImportResult, String> {
+    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
+
+    let mut total = 0;
+    let mut success = 0;
+    let mut failed = 0;
+    let mut messages: Vec<String> = Vec::new();
+
+    // 开启事务
+    conn.execute("BEGIN TRANSACTION", [],).map_err(|e| e.to_string())?;
+
+    for emp in &employees {
+        total += 1;
+
+        // 检查必填字段
+        if emp.name.is_empty() || emp.employee_no.is_empty() {
+            failed += 1;
+            messages.push(format!("第{}行：员工编号和姓名为必填项", total));
+            continue;
+        }
+
+        // 查找已存在的员工
+        let existing: Option<i64> = conn
+            .query_row(
+                "SELECT id FROM employees WHERE employee_no = ?1",
+                [&emp.employee_no],
+                |row| row.get(0),
+            )
+            .ok();
+
+        let result = if let Some(id) = existing {
+            // 更新
+            conn.execute(
+                "UPDATE employees SET name = ?1, employee_no = ?2, fixed_salary = ?3,
+                 performance_salary = ?4, entry_date = ?5, status = ?6,
+                 id_card = ?7, city = ?8, department = ?9, position = ?10,
+                 updated_at = datetime('now')
+                 WHERE id = ?11",
+                (
+                    &emp.name,
+                    &emp.employee_no,
+                    emp.fixed_salary,
+                    emp.performance_salary,
+                    &emp.entry_date,
+                    &emp.status,
+                    &emp.id_card,
+                    &emp.city,
+                    &emp.department,
+                    &emp.position,
+                    id,
+                ),
+            )
+        } else {
+            // 插入
+            conn.execute(
+                "INSERT INTO employees (employee_no, name, fixed_salary, performance_salary,
+                 entry_date, status, id_card, city, department, position)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+                (
+                    &emp.employee_no,
+                    &emp.name,
+                    emp.fixed_salary,
+                    emp.performance_salary,
+                    &emp.entry_date,
+                    &emp.status,
+                    &emp.id_card,
+                    &emp.city,
+                    &emp.department,
+                    &emp.position,
+                ),
+            )
+        };
+
+        match result {
+            Ok(_) => success += 1,
+            Err(e) => {
+                failed += 1;
+                messages.push(format!("第{}行：{} - {}", total, &emp.name, e));
+            }
+        }
+    }
+
+    // 根据结果提交或回滚
+    if failed > 0 {
+        conn.execute("ROLLBACK", [],).map_err(|e| e.to_string())?;
+    } else {
+        conn.execute("COMMIT", [],).map_err(|e| e.to_string())?;
+    }
+
+    Ok(BatchImportResult {
+        total,
+        success,
+        failed,
+        messages,
+    })
 }
