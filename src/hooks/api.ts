@@ -28,3 +28,7 @@ export async function calculateSalary(employeeId: number, yearMonth: string): Pr
 export async function saveAttendance(attendance: Attendance): Promise<void> {
   return invoke('save_attendance', { attendance })
 }
+
+export async function getAttendances(yearMonth: string): Promise<Attendance[]> {
+  return invoke<Attendance[]>('get_attendances', { yearMonth })
+}

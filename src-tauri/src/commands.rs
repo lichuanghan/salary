@@ -203,3 +203,31 @@ pub fn save_attendance(state: tauri::State<super::db::DbState>, attendance: Atte
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_attendances(state: tauri::State<super::db::DbState>, year_month: String) -> Result<Vec<Attendance>, String> {
+    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT id, employee_id, year_month, work_days, normal_days, sick_leave_days, COALESCE(late_count, 0), COALESCE(early_leave_count, 0), COALESCE(overtime_hours, 0) FROM attendance WHERE year_month = ?1")
+        .map_err(|e| e.to_string())?;
+
+    let attendances = stmt
+        .query_map([&year_month], |row| {
+            Ok(Attendance {
+                id: Some(row.get(0)?),
+                employee_id: row.get(1)?,
+                year_month: row.get(2)?,
+                work_days: row.get(3)?,
+                normal_days: row.get(4)?,
+                sick_leave_days: row.get(5)?,
+                late_count: row.get(6)?,
+                early_leave_count: row.get(7)?,
+                overtime_hours: row.get(8)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())?;
+
+    Ok(attendances)
+}
