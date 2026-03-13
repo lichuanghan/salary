@@ -44,12 +44,16 @@ export function EmployeePage() {
   }, [])
 
   const handleAddEmployee = async (data: Employee) => {
+    console.log('handleAddEmployee called with:', data)
     try {
-      await api.addEmployee(data)
+      console.log('Calling api.addEmployee...')
+      const result = await api.addEmployee(data)
+      console.log('addEmployee result:', result)
       setShowModal(false)
       loadEmployees()
     } catch (error) {
       console.error('添加员工失败:', error)
+      alert('添加员工失败: ' + error)
     }
   }
 

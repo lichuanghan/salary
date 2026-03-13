@@ -94,13 +94,30 @@ pub fn get_employees(state: tauri::State<super::db::DbState>) -> Result<Vec<Empl
 
 #[tauri::command]
 pub fn add_employee(state: tauri::State<super::db::DbState>, employee: Employee) -> Result<i64, String> {
-    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
-    conn.execute(
+    println!("[add_employee] Received employee: {:?}", employee);
+
+    let conn = super::db::get_connection(&state).map_err(|e| {
+        println!("[add_employee] Connection error: {}", e);
+        e.to_string()
+    })?;
+
+    let result = conn.execute(
         "INSERT INTO employees (employee_no, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
         params![employee.employee_no, employee.name, employee.id_card, employee.city, employee.department, employee.position, employee.entry_date, employee.fixed_salary, employee.performance_salary, employee.status],
-    ).map_err(|e| e.to_string())?;
+    );
 
-    Ok(conn.last_insert_rowid())
+    match result {
+        Ok(rows) => {
+            println!("[add_employee] Inserted successfully, rows affected: {}", rows);
+            let id = conn.last_insert_rowid();
+            println!("[add_employee] New employee id: {}", id);
+            Ok(id)
+        }
+        Err(e) => {
+            println!("[add_employee] Insert error: {}", e);
+            Err(e.to_string())
+        }
+    }
 }
 
 #[tauri::command]

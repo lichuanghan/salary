@@ -18,7 +18,12 @@ export function EmployeeForm({ initialData, onSubmit, onCancel }: EmployeeFormPr
   )
 
   const handleSubmit = () => {
-    if (!formData.name) return
+    console.log('handleSubmit called, formData:', formData)
+    if (!formData.name) {
+      console.log('Name is empty, returning early')
+      return
+    }
+    console.log('Calling onSubmit with:', formData)
     onSubmit(formData)
   }
 

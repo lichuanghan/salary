@@ -99,31 +99,12 @@ export async function generateTemplate(): Promise<void> {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '员工导入模板')
 
-  // Use write to get base64 and trigger download
-  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' })
-
-  // Try using Tauri download first, fallback to browser
-  try {
-    const { save } = await import('@tauri-apps/plugin-dialog')
-    const { writeFile } = await import('@tauri-apps/plugin-fs')
-
-    const filePath = await save({
-      defaultPath: '员工导入模板.xlsx',
-      filters: [{ name: 'Excel', extensions: ['xlsx'] }]
-    })
-
-    if (filePath) {
-      const binary = Uint8Array.from(atob(wbout), c => c.charCodeAt(0))
-      await writeFile(filePath, binary)
-    }
-  } catch {
-    // Fallback to browser download
-    const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = '员工导入模板.xlsx'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  // Use browser download directly - more reliable
+  const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = '员工导入模板.xlsx'
+  a.click()
+  URL.revokeObjectURL(url)
 }
