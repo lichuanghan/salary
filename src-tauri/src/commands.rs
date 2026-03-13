@@ -4,6 +4,7 @@ use rusqlite::params;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Employee {
     pub id: Option<i64>,
+    pub employee_no: Option<String>,
     pub name: String,
     pub id_card: Option<String>,
     pub city: Option<String>,
@@ -43,22 +44,23 @@ pub struct SalaryResult {
 pub fn get_employees(state: tauri::State<super::db::DbState>) -> Result<Vec<Employee>, String> {
     let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
     let mut stmt = conn
-        .prepare("SELECT id, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE status = 'active'")
+        .prepare("SELECT id, employee_no, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE status = 'active'")
         .map_err(|e| e.to_string())?;
 
     let employees = stmt
         .query_map([], |row| {
             Ok(Employee {
                 id: Some(row.get(0)?),
-                name: row.get(1)?,
-                id_card: row.get(2)?,
-                city: row.get(3)?,
-                department: row.get(4)?,
-                position: row.get(5)?,
-                entry_date: row.get(6)?,
-                fixed_salary: row.get(7)?,
-                performance_salary: row.get(8)?,
-                status: row.get(9)?,
+                employee_no: row.get(1)?,
+                name: row.get(2)?,
+                id_card: row.get(3)?,
+                city: row.get(4)?,
+                department: row.get(5)?,
+                position: row.get(6)?,
+                entry_date: row.get(7)?,
+                fixed_salary: row.get(8)?,
+                performance_salary: row.get(9)?,
+                status: row.get(10)?,
             })
         })
         .map_err(|e| e.to_string())?
@@ -72,8 +74,8 @@ pub fn get_employees(state: tauri::State<super::db::DbState>) -> Result<Vec<Empl
 pub fn add_employee(state: tauri::State<super::db::DbState>, employee: Employee) -> Result<i64, String> {
     let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO employees (name, id_card, city, department, position, entry_date, fixed_salary, performance_salary) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-        params![employee.name, employee.id_card, employee.city, employee.department, employee.position, employee.entry_date, employee.fixed_salary, employee.performance_salary],
+        "INSERT INTO employees (employee_no, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        params![employee.employee_no, employee.name, employee.id_card, employee.city, employee.department, employee.position, employee.entry_date, employee.fixed_salary, employee.performance_salary],
     ).map_err(|e| e.to_string())?;
 
     Ok(conn.last_insert_rowid())
@@ -83,8 +85,8 @@ pub fn add_employee(state: tauri::State<super::db::DbState>, employee: Employee)
 pub fn update_employee(state: tauri::State<super::db::DbState>, employee: Employee) -> Result<(), String> {
     let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
     conn.execute(
-        "UPDATE employees SET name = ?1, id_card = ?2, city = ?3, department = ?4, position = ?5, entry_date = ?6, fixed_salary = ?7, performance_salary = ?8, updated_at = datetime('now') WHERE id = ?9",
-        params![employee.name, employee.id_card, employee.city, employee.department, employee.position, employee.entry_date, employee.fixed_salary, employee.performance_salary, employee.id],
+        "UPDATE employees SET employee_no = ?1, name = ?2, id_card = ?3, city = ?4, department = ?5, position = ?6, entry_date = ?7, fixed_salary = ?8, performance_salary = ?9, updated_at = datetime('now') WHERE id = ?10",
+        params![employee.employee_no, employee.name, employee.id_card, employee.city, employee.department, employee.position, employee.entry_date, employee.fixed_salary, employee.performance_salary, employee.id],
     ).map_err(|e| e.to_string())?;
 
     Ok(())
@@ -107,22 +109,23 @@ pub fn search_employees(state: tauri::State<super::db::DbState>, keyword: String
     let search_pattern = format!("%{}%", keyword);
 
     let mut stmt = conn
-        .prepare("SELECT id, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE status = 'active' AND (name LIKE ?1 OR department LIKE ?1 OR position LIKE ?1)")
+        .prepare("SELECT id, employee_no, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE status = 'active' AND (name LIKE ?1 OR department LIKE ?1 OR position LIKE ?1)")
         .map_err(|e| e.to_string())?;
 
     let employees = stmt
         .query_map([&search_pattern], |row| {
             Ok(Employee {
                 id: Some(row.get(0)?),
-                name: row.get(1)?,
-                id_card: row.get(2)?,
-                city: row.get(3)?,
-                department: row.get(4)?,
-                position: row.get(5)?,
-                entry_date: row.get(6)?,
-                fixed_salary: row.get(7)?,
-                performance_salary: row.get(8)?,
-                status: row.get(9)?,
+                employee_no: row.get(1)?,
+                name: row.get(2)?,
+                id_card: row.get(3)?,
+                city: row.get(4)?,
+                department: row.get(5)?,
+                position: row.get(6)?,
+                entry_date: row.get(7)?,
+                fixed_salary: row.get(8)?,
+                performance_salary: row.get(9)?,
+                status: row.get(10)?,
             })
         })
         .map_err(|e| e.to_string())?
@@ -138,20 +141,21 @@ pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i6
 
     // 获取员工信息
     let employee: Employee = conn.query_row(
-        "SELECT id, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE id = ?1",
+        "SELECT id, employee_no, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE id = ?1",
         params![employee_id],
         |row| {
             Ok(Employee {
                 id: Some(row.get(0)?),
-                name: row.get(1)?,
-                id_card: row.get(2)?,
-                city: row.get(3)?,
-                department: row.get(4)?,
-                position: row.get(5)?,
-                entry_date: row.get(6)?,
-                fixed_salary: row.get(7)?,
-                performance_salary: row.get(8)?,
-                status: row.get(9)?,
+                employee_no: row.get(1)?,
+                name: row.get(2)?,
+                id_card: row.get(3)?,
+                city: row.get(4)?,
+                department: row.get(5)?,
+                position: row.get(6)?,
+                entry_date: row.get(7)?,
+                fixed_salary: row.get(8)?,
+                performance_salary: row.get(9)?,
+                status: row.get(10)?,
             })
         },
     ).map_err(|e| e.to_string())?;
