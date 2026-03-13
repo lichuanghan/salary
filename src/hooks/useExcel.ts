@@ -1,4 +1,6 @@
 import * as XLSX from 'xlsx'
+import { save } from '@tauri-apps/plugin-dialog'
+import { writeFile } from '@tauri-apps/plugin-fs'
 import type { EmployeeImport, Attendance } from './api'
 
 export interface ParsedEmployee {
@@ -105,14 +107,17 @@ export async function generateTemplate(): Promise<void> {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '员工导入模板')
 
-  // Use browser download directly - more reliable
-  const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = '员工导入模板.xlsx'
-  a.click()
-  URL.revokeObjectURL(url)
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+
+  // Use Tauri dialog to save file
+  const filePath = await save({
+    defaultPath: '员工导入模板.xlsx',
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }]
+  })
+
+  if (filePath) {
+    await writeFile(filePath, new Uint8Array(wbout))
+  }
 }
 
 export function parseAttendanceExcelFile(file: File): Promise<ParsedAttendance[]> {
@@ -198,11 +203,15 @@ export async function generateAttendanceTemplate(): Promise<void> {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '考勤导入模板')
 
-  const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = '考勤导入模板.xlsx'
-  a.click()
-  URL.revokeObjectURL(url)
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+
+  // Use Tauri dialog to save file
+  const filePath = await save({
+    defaultPath: '考勤导入模板.xlsx',
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }]
+  })
+
+  if (filePath) {
+    await writeFile(filePath, new Uint8Array(wbout))
+  }
 }
