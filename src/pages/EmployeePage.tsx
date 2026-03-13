@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { EmployeeList, EmployeeForm } from '../components'
+import { EmployeeList, EmployeeForm, EmployeeImportModal } from '../components'
 import * as api from '../hooks/api'
 import type { Employee } from '../types'
 
@@ -8,6 +8,7 @@ export function EmployeePage() {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const [searchKeyword, setSearchKeyword] = useState('')
 
@@ -96,6 +97,7 @@ export function EmployeePage() {
             onEdit={(emp) => setEditingEmployee(emp)}
             onDelete={handleDeleteEmployee}
             onAdd={() => setShowModal(true)}
+            onImport={() => setShowImport(true)}
             searchKeyword={searchKeyword}
             onSearch={handleSearch}
           />
@@ -116,6 +118,17 @@ export function EmployeePage() {
           initialData={editingEmployee}
           onSubmit={handleEditEmployee}
           onCancel={() => setEditingEmployee(null)}
+        />
+      )}
+
+      {/* 批量导入弹窗 */}
+      {showImport && (
+        <EmployeeImportModal
+          onClose={() => setShowImport(false)}
+          onSuccess={() => {
+            setShowImport(false)
+            loadEmployees()
+          }}
         />
       )}
     </div>

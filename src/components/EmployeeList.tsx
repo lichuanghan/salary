@@ -7,11 +7,12 @@ interface EmployeeListProps {
   onEdit: (employee: Employee) => void
   onDelete: (id: number) => void
   onAdd: () => void
+  onImport?: () => void
   searchKeyword?: string
   onSearch?: (keyword: string) => void
 }
 
-export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete, onAdd, searchKeyword, onSearch }: EmployeeListProps) {
+export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete, onAdd, onImport, searchKeyword, onSearch }: EmployeeListProps) {
   return (
     <div className="card" style={{ padding: '24px' }}>
       {/* 头部 */}
@@ -60,6 +61,16 @@ export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete
                 style={{ paddingLeft: '36px', width: '200px', height: '38px' }}
               />
             </div>
+          )}
+          {onImport && (
+            <button onClick={onImport} className="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              批量导入
+            </button>
           )}
           <button onClick={onAdd} className="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
