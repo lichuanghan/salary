@@ -18,6 +18,17 @@ export interface Attendance {
   work_days: number
   normal_days: number
   sick_leave_days: number
+  // 新增字段
+  late_count: number
+  early_leave_count: number
+  overtime_hours: number
+}
+
+export interface DeductionRule {
+  late_deduction_per_time: number
+  late_threshold: number
+  early_leave_deduction_per_time: number
+  overtime_rate: number
 }
 
 export interface SalaryResult {

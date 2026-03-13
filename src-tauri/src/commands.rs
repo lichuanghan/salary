@@ -23,6 +23,10 @@ pub struct Attendance {
     pub work_days: f64,
     pub normal_days: f64,
     pub sick_leave_days: f64,
+    // 新增字段
+    pub late_count: i32,
+    pub early_leave_count: i32,
+    pub overtime_hours: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -154,7 +158,7 @@ pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i6
 
     // 获取考勤信息
     let attendance: Option<Attendance> = conn.query_row(
-        "SELECT id, employee_id, year_month, work_days, normal_days, sick_leave_days FROM attendance WHERE employee_id = ?1 AND year_month = ?2",
+        "SELECT id, employee_id, year_month, work_days, normal_days, sick_leave_days, COALESCE(late_count, 0), COALESCE(early_leave_count, 0), COALESCE(overtime_hours, 0) FROM attendance WHERE employee_id = ?1 AND year_month = ?2",
         params![employee_id, year_month],
         |row| {
             Ok(Attendance {
@@ -164,6 +168,9 @@ pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i6
                 work_days: row.get(3)?,
                 normal_days: row.get(4)?,
                 sick_leave_days: row.get(5)?,
+                late_count: row.get(6)?,
+                early_leave_count: row.get(7)?,
+                overtime_hours: row.get(8)?,
             })
         },
     ).ok();
@@ -190,8 +197,8 @@ pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i6
 pub fn save_attendance(state: tauri::State<super::db::DbState>, attendance: Attendance) -> Result<(), String> {
     let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT OR REPLACE INTO attendance (employee_id, year_month, work_days, normal_days, sick_leave_days) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![attendance.employee_id, attendance.year_month, attendance.work_days, attendance.normal_days, attendance.sick_leave_days],
+        "INSERT OR REPLACE INTO attendance (employee_id, year_month, work_days, normal_days, sick_leave_days, late_count, early_leave_count, overtime_hours) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![attendance.employee_id, attendance.year_month, attendance.work_days, attendance.normal_days, attendance.sick_leave_days, attendance.late_count, attendance.early_leave_count, attendance.overtime_hours],
     ).map_err(|e| e.to_string())?;
 
     Ok(())

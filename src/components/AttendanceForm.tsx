@@ -15,7 +15,10 @@ export function AttendanceForm({ employeeName, initialData, onSubmit, onCancel }
       year_month: '',
       work_days: 23,
       normal_days: 21,
-      sick_leave_days: 0
+      sick_leave_days: 0,
+      late_count: 0,
+      early_leave_count: 0,
+      overtime_hours: 0
     }
   )
 
