@@ -1,4 +1,6 @@
 export { Layout } from './Layout'
+export { Sidebar } from './Sidebar'
+export { PageContainer } from './PageContainer'
 export { EmployeeList } from './EmployeeList'
 export { EmployeeForm } from './EmployeeForm'
 export { AttendanceForm } from './AttendanceForm'
