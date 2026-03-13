@@ -17,6 +17,10 @@ export async function deleteEmployee(id: number): Promise<void> {
   return invoke('delete_employee', { id })
 }
 
+export async function searchEmployees(keyword: string): Promise<Employee[]> {
+  return invoke<Employee[]>('search_employees', { keyword })
+}
+
 export async function calculateSalary(employeeId: number, yearMonth: string): Promise<SalaryResult> {
   return invoke<SalaryResult>('calculate_salary', { employeeId, yearMonth })
 }

@@ -98,6 +98,37 @@ pub fn delete_employee(state: tauri::State<super::db::DbState>, id: i64) -> Resu
 }
 
 #[tauri::command]
+pub fn search_employees(state: tauri::State<super::db::DbState>, keyword: String) -> Result<Vec<Employee>, String> {
+    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
+    let search_pattern = format!("%{}%", keyword);
+
+    let mut stmt = conn
+        .prepare("SELECT id, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status FROM employees WHERE status = 'active' AND (name LIKE ?1 OR department LIKE ?1 OR position LIKE ?1)")
+        .map_err(|e| e.to_string())?;
+
+    let employees = stmt
+        .query_map([&search_pattern], |row| {
+            Ok(Employee {
+                id: Some(row.get(0)?),
+                name: row.get(1)?,
+                id_card: row.get(2)?,
+                city: row.get(3)?,
+                department: row.get(4)?,
+                position: row.get(5)?,
+                entry_date: row.get(6)?,
+                fixed_salary: row.get(7)?,
+                performance_salary: row.get(8)?,
+                status: row.get(9)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())?;
+
+    Ok(employees)
+}
+
+#[tauri::command]
 pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i64, year_month: String) -> Result<SalaryResult, String> {
     let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
 

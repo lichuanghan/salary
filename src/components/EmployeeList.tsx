@@ -7,9 +7,11 @@ interface EmployeeListProps {
   onEdit: (employee: Employee) => void
   onDelete: (id: number) => void
   onAdd: () => void
+  searchKeyword?: string
+  onSearch?: (keyword: string) => void
 }
 
-export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete, onAdd }: EmployeeListProps) {
+export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete, onAdd, searchKeyword, onSearch }: EmployeeListProps) {
   return (
     <div className="card" style={{ padding: '24px' }}>
       {/* 头部 */}
@@ -32,12 +34,40 @@ export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete
             </p>
           </div>
         </div>
-        <button onClick={onAdd} className="btn btn-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          添加员工
-        </button>
+        <div className="flex items-center gap-3">
+          {/* 搜索框 */}
+          {onSearch && (
+            <div className="relative">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                value={searchKeyword || ''}
+                onChange={(e) => onSearch(e.target.value)}
+                placeholder="搜索员工..."
+                className="input"
+                style={{ paddingLeft: '36px', width: '200px', height: '38px' }}
+              />
+            </div>
+          )}
+          <button onClick={onAdd} className="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            添加员工
+          </button>
+        </div>
       </div>
 
       {/* 表格 */}
