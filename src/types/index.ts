@@ -28,3 +28,13 @@ export interface SalaryResult {
   attendance_deduction: number
   monthly_salary: number
 }
+
+export type PageId =
+  | 'dashboard'
+  | 'employee'
+  | 'salary'
+  | 'insurance'
+  | 'attendance'
+  | 'tax'
+  | 'report'
+  | 'settings'
