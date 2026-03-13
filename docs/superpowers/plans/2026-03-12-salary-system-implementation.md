@@ -6,7 +6,7 @@
 
 **Architecture:** Tauri桌面应用，前端使用React + TypeScript，后端使用Rust，SQLite本地存储
 
-**Tech Stack:** Tauri 2.x + React + TypeScript + Tailwind CSS + SQLite
+**Tech Stack:** Tauri 2.x + React 19.x + TypeScript + Tailwind CSS 4.x + Vite 8.x + SQLite
 
 ---
 
@@ -69,20 +69,21 @@ salary-system/
     "tauri": "tauri"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@tauri-apps/api": "^2.0.0"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "@tauri-apps/api": "^2.10.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.0",
-    "vite": "^5.0.0"
+    "@tauri-apps/cli": "^2.10.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.0"
   }
 }
 ```
@@ -92,9 +93,10 @@ salary-system/
 ```typescript
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   clearScreen: false,
   server: {
     port: 1420,
@@ -153,7 +155,6 @@ export default {
 ```javascript
 export default {
   plugins: {
-    tailwindcss: {},
     autoprefixer: {},
   },
 }
@@ -167,7 +168,7 @@ name = "salary-system"
 version = "1.0.0"
 description = "HR薪酬管理系统"
 authors = [""]
-edition = "2021"
+edition = "2024"
 
 [lib]
 name = "salary_system_lib"
@@ -181,7 +182,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rusqlite = { version = "0.31", features = ["bundled"] }
+rusqlite = { version = "0.38", features = ["bundled"] }
 chrono = { version = "0.4", features = ["serde"] }
 
 [profile.release]
@@ -517,9 +518,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 - [ ] **Step 14: 创建全局样式**
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 ```
 
 - [ ] **Step 15: 创建主应用组件**

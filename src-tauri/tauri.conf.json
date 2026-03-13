@@ -12,13 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "薪酬管理系统",
-        "width": 1200,
+        "fullscreen": false,
         "height": 800,
-        "minWidth": 1024,
         "minHeight": 768,
+        "minWidth": 1024,
         "resizable": true,
-        "fullscreen": false
+        "title": "薪酬管理系统",
+        "width": 1200
       }
     ],
     "security": {
@@ -27,7 +27,6 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "icon": []
+    "targets": "all"
   }
 }
