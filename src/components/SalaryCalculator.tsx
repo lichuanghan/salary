@@ -181,7 +181,7 @@ export function SalaryCalculator({
                     textShadow: '0 2px 8px rgba(184, 134, 11, 0.3)'
                   }}
                 >
-                  ¥{salaryResult.monthly_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  ¥{salaryResult.net_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>

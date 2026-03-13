@@ -34,10 +34,26 @@ export interface DeductionRule {
 export interface SalaryResult {
   employee_id: number
   employee_name: string
+  year_month: string
+  // 工资明细
   fixed_salary: number
   performance_salary: number
+  // 考勤扣款/补贴
+  late_deduction: number
+  early_leave_deduction: number
+  overtime_allowance: number
   attendance_deduction: number
-  monthly_salary: number
+  // 最终
+  gross_salary: number
+  net_salary: number
+}
+
+export interface SalaryHistory {
+  id?: number
+  employee_id: number
+  year_month: string
+  salary_result: SalaryResult
+  created_at?: string
 }
 
 export type PageId =
