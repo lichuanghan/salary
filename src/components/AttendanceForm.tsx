@@ -24,52 +24,110 @@ export function AttendanceForm({ employeeName, initialData, onSubmit, onCancel }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold mb-4">录入考勤 - {employeeName}</h3>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">本月出勤天数</label>
-            <input
-              type="number"
-              value={formData.work_days}
-              onChange={(e) => setFormData({ ...formData, work_days: Number(e.target.value) })}
-              className="w-full px-3 py-2 border rounded-md"
-            />
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content animate-scale" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-semibold"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-accent) 0%, #9a7209 100%)',
+                boxShadow: '0 2px 8px rgba(184, 134, 11, 0.3)'
+              }}
+            >
+              {employeeName.charAt(0)}
+            </div>
+            <div>
+              <h3>录入考勤</h3>
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                {employeeName}
+              </p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">正常出勤天数</label>
-            <input
-              type="number"
-              value={formData.normal_days}
-              onChange={(e) => setFormData({ ...formData, normal_days: Number(e.target.value) })}
-              className="w-full px-3 py-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">事假天数</label>
-            <input
-              type="number"
-              value={formData.sick_leave_days}
-              onChange={(e) => setFormData({ ...formData, sick_leave_days: Number(e.target.value) })}
-              className="w-full px-3 py-2 border rounded-md"
-            />
-          </div>
-          <p className="text-sm text-gray-500">
-            考勤扣款规则：事假一天扣除固定薪酬一天，绩效薪酬不变。每天工资 = 固定薪酬 ÷ 21.75
-          </p>
         </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 border rounded hover:bg-gray-50"
-          >
+        <div className="modal-body">
+          <div className="space-y-5">
+            {/* 本月出勤天数 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                本月应出勤天数
+              </label>
+              <input
+                type="number"
+                value={formData.work_days}
+                onChange={(e) => setFormData({ ...formData, work_days: Number(e.target.value) })}
+                className="input"
+                min={0}
+                max={31}
+              />
+            </div>
+
+            {/* 正常出勤天数 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                实际出勤天数
+              </label>
+              <input
+                type="number"
+                value={formData.normal_days}
+                onChange={(e) => setFormData({ ...formData, normal_days: Number(e.target.value) })}
+                className="input"
+                min={0}
+                max={31}
+              />
+            </div>
+
+            {/* 事假天数 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                事假天数
+              </label>
+              <input
+                type="number"
+                value={formData.sick_leave_days}
+                onChange={(e) => setFormData({ ...formData, sick_leave_days: Number(e.target.value) })}
+                className="input"
+                min={0}
+                max={31}
+                step={0.5}
+              />
+              <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                事假将按固定工资 ÷ 21.75 进行扣款
+              </p>
+            </div>
+
+            {/* 提示 */}
+            <div
+              className="p-4 rounded-xl"
+              style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)',
+                border: '1px solid rgba(217, 119, 6, 0.2)'
+              }}
+            >
+              <div className="flex gap-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" strokeWidth="2" className="flex-shrink-0 mt-0.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  <p className="font-medium mb-1" style={{ color: 'var(--color-warning)' }}>考勤扣款规则</p>
+                  <p style={{ color: 'var(--color-text-muted)' }}>
+                    考勤扣款 = 事假天数 × (固定工资 ÷ 21.75)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onCancel} className="btn btn-secondary">
             取消
           </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
+          <button onClick={handleSubmit} className="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
             保存
           </button>
         </div>

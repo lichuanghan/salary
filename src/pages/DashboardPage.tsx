@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import * as api from '../hooks/api'
-import type { Employee } from '../types'
 
 interface StatCard {
   label: string

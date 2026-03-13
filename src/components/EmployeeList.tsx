@@ -10,61 +10,110 @@ interface EmployeeListProps {
 
 export function EmployeeList({ employees, selectedId, onSelect, onDelete, onAdd }: EmployeeListProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">员工列表</h2>
-        <button
-          onClick={onAdd}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
+    <div className="card" style={{ padding: '24px' }}>
+      {/* 头部 */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, var(--color-accent-light) 0%, #f5f0e0 100%)' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              员工列表
+            </h2>
+            <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: '2px' }}>
+              共 {employees.length} 名员工
+            </p>
+          </div>
+        </div>
+        <button onClick={onAdd} className="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
           添加员工
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left">姓名</th>
-              <th className="px-4 py-2 text-right">固定薪酬</th>
-              <th className="px-4 py-2 text-right">绩效薪酬</th>
-              <th className="px-4 py-2 text-center">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((emp) => (
-              <tr
-                key={emp.id}
-                className={`border-t hover:bg-gray-50 cursor-pointer ${
-                  selectedId === emp.id ? 'bg-blue-50' : ''
-                }`}
-                onClick={() => onSelect(emp)}
-              >
-                <td className="px-4 py-2">{emp.name}</td>
-                <td className="px-4 py-2 text-right">¥{emp.fixed_salary.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">¥{emp.performance_salary.toFixed(2)}</td>
-                <td className="px-4 py-2 text-center">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDelete(emp.id!)
-                    }}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    删除
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {employees.length === 0 && (
+
+      {/* 表格 */}
+      {employees.length > 0 ? (
+        <div className="overflow-x-auto -mx-6 px-6">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                  暂无员工，请添加
-                </td>
+                <th>姓名</th>
+                <th style={{ textAlign: 'right' }}>固定薪酬</th>
+                <th style={{ textAlign: 'right' }}>绩效薪酬</th>
+                <th style={{ textAlign: 'center' }}>操作</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {employees.map((emp) => (
+                <tr
+                  key={emp.id}
+                  className={selectedId === emp.id ? 'selected' : ''}
+                  onClick={() => onSelect(emp)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>
+                    <div className="flex items-center gap-3">
+                      {/* 头像 */}
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm"
+                        style={{
+                          background: 'linear-gradient(135deg, var(--color-accent) 0%, #9a7209 100%)',
+                          boxShadow: '0 2px 6px rgba(184, 134, 11, 0.3)'
+                        }}
+                      >
+                        {emp.name.charAt(0)}
+                      </div>
+                      <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{emp.name}</span>
+                    </div>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <span className="amount font-medium">¥{emp.fixed_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <span className="amount font-medium">¥{emp.performance_salary.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete(emp.id!)
+                      }}
+                      className="btn btn-danger btn-sm"
+                      style={{ borderRadius: '8px' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                      </svg>
+                      删除
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state">
+          <div
+            className="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, var(--color-accent-light) 0%, #f5f0e0 100%)' }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" width="36" height="36">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+            </svg>
+          </div>
+          <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>暂无员工</p>
+          <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>点击上方"添加员工"按钮创建新员工</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -7,7 +7,6 @@ export function EmployeePage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadEmployees()
@@ -19,8 +18,6 @@ export function EmployeePage() {
       setEmployees(data)
     } catch (error) {
       console.error('加载员工失败:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
