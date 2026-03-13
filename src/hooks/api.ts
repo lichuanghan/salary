@@ -1,6 +1,26 @@
 import { invoke } from '@tauri-apps/api/core'
 import type { Employee, Attendance, SalaryResult } from '../types'
 
+export interface EmployeeImport {
+  employee_no: string
+  name: string
+  fixed_salary: number
+  performance_salary: number
+  entry_date: string
+  status: string
+  id_card?: string
+  city?: string
+  department?: string
+  position?: string
+}
+
+export interface BatchImportResult {
+  total: number
+  success: number
+  failed: number
+  messages: string[]
+}
+
 export async function getEmployees(): Promise<Employee[]> {
   return invoke<Employee[]>('get_employees')
 }
@@ -31,4 +51,8 @@ export async function saveAttendance(attendance: Attendance): Promise<void> {
 
 export async function getAttendances(yearMonth: string): Promise<Attendance[]> {
   return invoke<Attendance[]>('get_attendances', { yearMonth })
+}
+
+export async function batchImportEmployees(employees: EmployeeImport[]): Promise<BatchImportResult> {
+  return invoke<BatchImportResult>('batch_import_employees', { employees })
 }
