@@ -107,6 +107,8 @@ export function SalaryPage() {
       {/* 考勤录入弹窗 */}
       {showAttendanceModal && selectedEmployee && (
         <AttendanceForm
+          employees={employees}
+          yearMonth={yearMonth}
           employeeName={selectedEmployee.name}
           initialData={attendanceData}
           onSubmit={handleSaveAttendance}

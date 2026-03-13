@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AttendanceForm, AttendanceRules } from '../components'
+import { AttendanceForm, AttendanceRules, AttendanceImportModal } from '../components'
 import * as api from '../hooks/api'
 import type { Employee, Attendance } from '../types'
 
@@ -9,14 +9,17 @@ export function AttendancePage() {
   const [yearMonth, setYearMonth] = useState('2026-03')
   const [showModal, setShowModal] = useState(false)
   const [showRules, setShowRules] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editingAttendance, setEditingAttendance] = useState<Attendance | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('[考勤] 开始加载员工列表')
     loadEmployees()
   }, [])
 
   useEffect(() => {
+    console.log('[考勤] 开始加载考勤列表, yearMonth:', yearMonth)
     loadAttendances()
   }, [yearMonth])
 
@@ -30,30 +33,46 @@ export function AttendancePage() {
   }
 
   const loadAttendances = async () => {
+    console.log('[考勤] loadAttendances 开始加载, yearMonth:', yearMonth)
     try {
       setLoading(true)
       const data = await api.getAttendances(yearMonth)
+      console.log('[考勤] 加载到数据:', data.length, '条')
       setAttendances(data)
     } catch (error) {
-      console.error('加载考勤记录失败:', error)
+      console.error('[考勤] 加载考勤记录失败:', error)
     } finally {
       setLoading(false)
     }
   }
 
   const handleSaveAttendance = async (data: Attendance) => {
+    console.log('[考勤] 保存考勤数据:', JSON.stringify(data))
     try {
+      console.log('[考勤] 调用 api.saveAttendance...')
       await api.saveAttendance(data)
+      console.log('[考勤] 保存成功，准备刷新列表')
       setShowModal(false)
       setEditingAttendance(null)
-      loadAttendances()
+      await loadAttendances()
+      console.log('[考勤] 列表刷新完成')
     } catch (error) {
-      console.error('保存考勤失败:', error)
+      console.error('[考勤] 保存考勤失败:', error)
+      alert('保存失败: ' + error)
     }
   }
 
   const openAddModal = () => {
-    setEditingAttendance(null)
+    setEditingAttendance({
+      employee_id: 0,
+      year_month: yearMonth,
+      work_days: 23,
+      normal_days: 21,
+      sick_leave_days: 0,
+      late_count: 0,
+      early_leave_count: 0,
+      overtime_hours: 0
+    })
     setShowModal(true)
   }
 
@@ -112,6 +131,14 @@ export function AttendancePage() {
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
               扣款规则
+            </button>
+            <button onClick={() => setShowImport(true)} className="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              批量导入
             </button>
             <button onClick={openAddModal} className="btn btn-primary">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -240,7 +267,9 @@ export function AttendancePage() {
       {/* 考勤录入弹窗 */}
       {showModal && (
         <AttendanceForm
-          employeeName={editingAttendance ? getEmployeeName(editingAttendance.employee_id) : '请选择员工'}
+          employees={employees}
+          yearMonth={yearMonth}
+          employeeName={editingAttendance ? getEmployeeName(editingAttendance.employee_id) : undefined}
           initialData={editingAttendance || undefined}
           onSubmit={handleSaveAttendance}
           onCancel={() => {
@@ -253,6 +282,18 @@ export function AttendancePage() {
       {/* 扣款规则弹窗 */}
       {showRules && (
         <AttendanceRules onClose={() => setShowRules(false)} />
+      )}
+
+      {/* 批量导入弹窗 */}
+      {showImport && (
+        <AttendanceImportModal
+          yearMonth={yearMonth}
+          onClose={() => setShowImport(false)}
+          onSuccess={() => {
+            setShowImport(false)
+            loadAttendances()
+          }}
+        />
       )}
     </div>
   )

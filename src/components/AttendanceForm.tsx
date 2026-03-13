@@ -1,18 +1,23 @@
 import { useState } from 'react'
-import type { Attendance } from '../types'
+import type { Attendance, Employee } from '../types'
 
 interface AttendanceFormProps {
-  employeeName: string
+  employees: Employee[]
+  yearMonth: string
+  employeeName?: string
   initialData?: Attendance
   onSubmit: (data: Attendance) => void
   onCancel: () => void
 }
 
-export function AttendanceForm({ employeeName, initialData, onSubmit, onCancel }: AttendanceFormProps) {
+export function AttendanceForm({ employees, yearMonth, employeeName, initialData, onSubmit, onCancel }: AttendanceFormProps) {
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number>(
+    initialData?.employee_id || 0
+  )
   const [formData, setFormData] = useState<Attendance>(
     initialData || {
       employee_id: 0,
-      year_month: '',
+      year_month: yearMonth,
       work_days: 23,
       normal_days: 21,
       sick_leave_days: 0,
@@ -22,8 +27,31 @@ export function AttendanceForm({ employeeName, initialData, onSubmit, onCancel }
     }
   )
 
+  const handleEmployeeChange = (empId: number) => {
+    setSelectedEmployeeId(empId)
+    setFormData({ ...formData, employee_id: empId })
+  }
+
+  const currentEmployee = employees.find(e => e.id === selectedEmployeeId)
+  const displayName = currentEmployee?.name || employeeName || '请选择员工'
+
   const handleSubmit = () => {
-    onSubmit(formData)
+    console.log('[AttendanceForm] handleSubmit called')
+    console.log('[AttendanceForm] selectedEmployeeId:', selectedEmployeeId)
+    console.log('[AttendanceForm] formData:', formData)
+    console.log('[AttendanceForm] yearMonth:', yearMonth)
+
+    if (!selectedEmployeeId) {
+      alert('请选择员工')
+      return
+    }
+    if (!formData.year_month) {
+      alert('请选择考勤月份')
+      return
+    }
+    const submitData = { ...formData, employee_id: selectedEmployeeId, year_month: formData.year_month }
+    console.log('[AttendanceForm] 提交数据:', JSON.stringify(submitData))
+    onSubmit(submitData)
   }
 
   return (
@@ -38,18 +66,52 @@ export function AttendanceForm({ employeeName, initialData, onSubmit, onCancel }
                 boxShadow: '0 2px 8px rgba(184, 134, 11, 0.3)'
               }}
             >
-              {employeeName.charAt(0)}
+              {displayName.charAt(0)}
             </div>
             <div>
               <h3>录入考勤</h3>
               <p className="text-sm" style={{ color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                {employeeName}
+                {displayName}
               </p>
             </div>
           </div>
         </div>
         <div className="modal-body">
           <div className="space-y-5">
+            {/* 员工选择 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                选择员工 <span style={{ color: 'var(--color-danger)' }}>*</span>
+              </label>
+              <select
+                value={selectedEmployeeId || ''}
+                onChange={(e) => handleEmployeeChange(Number(e.target.value))}
+                className="input select"
+                style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+              >
+                <option value="">请选择员工</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name} {emp.employee_no ? `(${emp.employee_no})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 考勤月份 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                考勤月份 <span style={{ color: 'var(--color-danger)' }}>*</span>
+              </label>
+              <input
+                type="month"
+                value={formData.year_month || yearMonth}
+                onChange={(e) => setFormData({ ...formData, year_month: e.target.value })}
+                className="input select"
+                style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+              />
+            </div>
+
             {/* 本月出勤天数 */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
@@ -97,6 +159,49 @@ export function AttendanceForm({ employeeName, initialData, onSubmit, onCancel }
               <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
                 事假将按固定工资 ÷ 21.75 进行扣款
               </p>
+            </div>
+
+            {/* 迟到次数 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                迟到次数
+              </label>
+              <input
+                type="number"
+                value={formData.late_count}
+                onChange={(e) => setFormData({ ...formData, late_count: Number(e.target.value) })}
+                className="input"
+                min={0}
+              />
+            </div>
+
+            {/* 早退次数 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                早退次数
+              </label>
+              <input
+                type="number"
+                value={formData.early_leave_count}
+                onChange={(e) => setFormData({ ...formData, early_leave_count: Number(e.target.value) })}
+                className="input"
+                min={0}
+              />
+            </div>
+
+            {/* 加班小时数 */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                加班小时数
+              </label>
+              <input
+                type="number"
+                value={formData.overtime_hours}
+                onChange={(e) => setFormData({ ...formData, overtime_hours: Number(e.target.value) })}
+                className="input"
+                min={0}
+                step={0.5}
+              />
             </div>
 
             {/* 提示 */}

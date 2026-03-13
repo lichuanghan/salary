@@ -15,6 +15,8 @@ export interface Employee {
 export interface Attendance {
   id?: number
   employee_id: number
+  employee_no?: string  // Excel导入时使用
+  name?: string         // Excel导入时使用
   year_month: string
   work_days: number
   normal_days: number

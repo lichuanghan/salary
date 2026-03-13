@@ -1,6 +1,9 @@
 import { invoke } from '@tauri-apps/api/core'
 import type { Employee, Attendance, SalaryResult } from '../types'
 
+// Re-export types for useExcel
+export type { Attendance }
+
 export interface EmployeeImport {
   employee_no: string
   name: string
@@ -12,6 +15,18 @@ export interface EmployeeImport {
   city?: string
   department?: string
   position?: string
+}
+
+export interface AttendanceImport {
+  employee_no: string
+  name: string
+  year_month: string
+  work_days: number
+  normal_days: number
+  sick_leave_days: number
+  late_count: number
+  early_leave_count: number
+  overtime_hours: number
 }
 
 export interface BatchImportResult {
@@ -55,4 +70,8 @@ export async function getAttendances(yearMonth: string): Promise<Attendance[]> {
 
 export async function batchImportEmployees(employees: EmployeeImport[]): Promise<BatchImportResult> {
   return invoke<BatchImportResult>('batch_import_employees', { employees })
+}
+
+export async function batchImportAttendances(attendances: AttendanceImport[]): Promise<BatchImportResult> {
+  return invoke<BatchImportResult>('batch_import_attendances', { attendances })
 }

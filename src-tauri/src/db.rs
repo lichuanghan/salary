@@ -35,6 +35,9 @@ pub fn init_db(path: &PathBuf) -> Result<()> {
             work_days REAL NOT NULL DEFAULT 0,
             normal_days REAL NOT NULL DEFAULT 0,
             sick_leave_days REAL NOT NULL DEFAULT 0,
+            late_count INTEGER NOT NULL DEFAULT 0,
+            early_leave_count INTEGER NOT NULL DEFAULT 0,
+            overtime_hours REAL NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             FOREIGN KEY (employee_id) REFERENCES employees(id),
             UNIQUE(employee_id, year_month)

@@ -39,6 +39,19 @@ pub struct BatchImportResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct AttendanceImport {
+    pub employee_no: String,
+    pub name: String,
+    pub year_month: String,
+    pub work_days: f64,
+    pub normal_days: f64,
+    pub sick_leave_days: f64,
+    pub late_count: i32,
+    pub early_leave_count: i32,
+    pub overtime_hours: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Attendance {
     pub id: Option<i64>,
     pub employee_id: i64,
@@ -238,21 +251,61 @@ pub fn calculate_salary(state: tauri::State<super::db::DbState>, employee_id: i6
 
 #[tauri::command]
 pub fn save_attendance(state: tauri::State<super::db::DbState>, attendance: Attendance) -> Result<(), String> {
-    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
-    conn.execute(
+    println!("[save_attendance] 收到考勤数据: {:?}", attendance);
+
+    let conn = super::db::get_connection(&state).map_err(|e| {
+        println!("[save_attendance] 获取数据库连接失败: {}", e);
+        e.to_string()
+    })?;
+
+    println!("[save_attendance] 执行SQL: INSERT OR REPLACE INTO attendance");
+    let result = conn.execute(
         "INSERT OR REPLACE INTO attendance (employee_id, year_month, work_days, normal_days, sick_leave_days, late_count, early_leave_count, overtime_hours) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         params![attendance.employee_id, attendance.year_month, attendance.work_days, attendance.normal_days, attendance.sick_leave_days, attendance.late_count, attendance.early_leave_count, attendance.overtime_hours],
-    ).map_err(|e| e.to_string())?;
+    );
 
-    Ok(())
+    match result {
+        Ok(rows) => {
+            println!("[save_attendance] 保存成功, 影响行数: {}", rows);
+            Ok(())
+        }
+        Err(e) => {
+            println!("[save_attendance] 保存失败: {}", e);
+            Err(e.to_string())
+        }
+    }
 }
 
 #[tauri::command]
 pub fn get_attendances(state: tauri::State<super::db::DbState>, year_month: String) -> Result<Vec<Attendance>, String> {
-    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
+    println!("[get_attendances] 收到查询请求, year_month: '{}'", year_month);
+
+    let conn = super::db::get_connection(&state).map_err(|e| {
+        println!("[get_attendances] 获取连接失败: {}", e);
+        e.to_string()
+    })?;
+
+    // 先查看数据库中的所有数据
+    println!("[get_attendances] 查看数据库中的所有考勤记录...");
+    let mut check_stmt = conn.prepare("SELECT id, employee_id, year_month FROM attendance").map_err(|e| e.to_string())?;
+    let all_records: Vec<(i64, i64, String)> = check_stmt.query_map([], |row| {
+        Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+    println!("[get_attendances] 数据库中共有 {} 条记录", all_records.len());
+    for r in &all_records {
+        println!("[get_attendances]   id={}, employee_id={}, year_month='{}'", r.0, r.1, r.2);
+    }
+
+    // 查询指定月份
+    println!("[get_attendances] 查询 year_month = '{}' 的记录...", year_month);
     let mut stmt = conn
         .prepare("SELECT id, employee_id, year_month, work_days, normal_days, sick_leave_days, COALESCE(late_count, 0), COALESCE(early_leave_count, 0), COALESCE(overtime_hours, 0) FROM attendance WHERE year_month = ?1")
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            println!("[get_attendances] SQL准备失败: {}", e);
+            e.to_string()
+        })?;
 
     let attendances = stmt
         .query_map([&year_month], |row| {
@@ -272,6 +325,7 @@ pub fn get_attendances(state: tauri::State<super::db::DbState>, year_month: Stri
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| e.to_string())?;
 
+    println!("[get_attendances] 查询结果: {} 条记录", attendances.len());
     Ok(attendances)
 }
 
@@ -357,6 +411,101 @@ pub fn batch_import_employees(
             Err(e) => {
                 failed += 1;
                 messages.push(format!("第{}行：{} - {}", total, &emp.name, e));
+            }
+        }
+    }
+
+    // 根据结果提交或回滚
+    if failed > 0 {
+        conn.execute("ROLLBACK", [],).map_err(|e| e.to_string())?;
+    } else {
+        conn.execute("COMMIT", [],).map_err(|e| e.to_string())?;
+    }
+
+    Ok(BatchImportResult {
+        total,
+        success,
+        failed,
+        messages,
+    })
+}
+
+#[tauri::command]
+pub fn batch_import_attendances(
+    state: tauri::State<super::db::DbState>,
+    attendances: Vec<AttendanceImport>,
+) -> Result<BatchImportResult, String> {
+    let conn = super::db::get_connection(&state).map_err(|e| e.to_string())?;
+
+    let mut total = 0;
+    let mut success = 0;
+    let mut failed = 0;
+    let mut messages: Vec<String> = Vec::new();
+
+    // 开启事务
+    conn.execute("BEGIN TRANSACTION", [],).map_err(|e| e.to_string())?;
+
+    for att in &attendances {
+        total += 1;
+
+        // 检查必填字段
+        if att.employee_no.is_empty() && att.name.is_empty() {
+            failed += 1;
+            messages.push(format!("第{}行：员工编号或姓名为必填项", total));
+            continue;
+        }
+        if att.year_month.is_empty() {
+            failed += 1;
+            messages.push(format!("第{}行：考勤月份为必填项", total));
+            continue;
+        }
+
+        // 查找员工ID
+        let employee_id: Option<i64> = if !att.employee_no.is_empty() {
+            conn.query_row(
+                "SELECT id FROM employees WHERE employee_no = ?1",
+                [&att.employee_no],
+                |row| row.get(0),
+            )
+            .ok()
+        } else {
+            conn.query_row(
+                "SELECT id FROM employees WHERE name = ?1",
+                [&att.name],
+                |row| row.get(0),
+            )
+            .ok()
+        };
+
+        let employee_id = match employee_id {
+            Some(id) => id,
+            None => {
+                failed += 1;
+                messages.push(format!("第{}行：员工不存在", total));
+                continue;
+            }
+        };
+
+        // 插入或更新考勤记录
+        let result = conn.execute(
+            "INSERT OR REPLACE INTO attendance (employee_id, year_month, work_days, normal_days, sick_leave_days, late_count, early_leave_count, overtime_hours) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                employee_id,
+                att.year_month,
+                att.work_days,
+                att.normal_days,
+                att.sick_leave_days,
+                att.late_count,
+                att.early_leave_count,
+                att.overtime_hours,
+            ],
+        );
+
+        match result {
+            Ok(_) => success += 1,
+            Err(e) => {
+                failed += 1;
+                messages.push(format!("第{}行：{} - {}", total, &att.name, e));
             }
         }
     }
