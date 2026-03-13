@@ -16,7 +16,14 @@ npm run preview      # 预览生产环境构建
 
 # Tauri 开发
 npm run tauri dev   # 开发模式启动 Tauri
-npm run tauri build # 构建生产环境可执行文件
+npm run tauri build # 构建生产环境可执行文件（macOS）
+
+# 交叉编译 Windows x86_64
+rustup target add x86_64-pc-windows-gnu  # 安装 Windows 目标
+npm run tauri build -- --target x86_64-pc-windows-gnu
+
+# 生成图标（需要先创建 1024x1024 的 app-icon.png）
+npx tauri icon app-icon.png
 
 # Rust 后端
 cd src-tauri
@@ -27,8 +34,8 @@ cargo run           # 直接运行 Rust 后端
 ## 技术架构
 
 ### 技术栈
-- **前端**: React 18 + TypeScript + Tailwind CSS + Vite
-- **后端**: Rust (Tauri 2.x)
+- **前端**: React 19.x + TypeScript + Tailwind CSS 4.x + Vite 8.x
+- **后端**: Rust (Tauri 2.x) + edition 2024
 - **数据库**: SQLite (bundled rusqlite)
 
 ### 项目结构
@@ -92,3 +99,5 @@ salary/
 - 数据库在首次启动时自动初始化，位于 Tauri 应用数据目录
 - 窗口配置：默认 1200x800，最小 1024x768
 - 使用 Tauri 2.x（请检查 package.json 和 Cargo.toml 版本匹配）
+- Windows 交叉编译需要安装 `x86_64-pc-windows-gnu` 目标
+- 图标生成：需要 1024x1024 的 PNG 源文件，使用 `npx tauri icon` 自动生成所有格式

@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import type { Employee, SalaryResult, Attendance } from '../types'
+import type { Employee, SalaryResult } from '../types'
 
 interface SalaryCalculatorProps {
   employees: Employee[]
