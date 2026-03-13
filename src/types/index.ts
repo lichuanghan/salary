@@ -1,5 +1,6 @@
 export interface Employee {
   id?: number
+  employee_no?: string
   name: string
   id_card?: string
   city?: string
