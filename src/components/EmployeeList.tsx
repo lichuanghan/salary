@@ -14,7 +14,7 @@ interface EmployeeListProps {
 
 export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete, onAdd, onImport, searchKeyword, onSearch }: EmployeeListProps) {
   return (
-    <div className="card" style={{ padding: '24px' }}>
+    <div>
       {/* 头部 */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
