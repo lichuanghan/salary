@@ -11,6 +11,7 @@ pub fn init_db(path: &PathBuf) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_no TEXT UNIQUE,
             name TEXT NOT NULL,
             id_card TEXT,
             city TEXT,
