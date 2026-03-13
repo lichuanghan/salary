@@ -368,6 +368,29 @@ pub fn save_attendance(state: tauri::State<super::db::DbState>, attendance: Atte
 }
 
 #[tauri::command]
+pub fn delete_attendance(state: tauri::State<super::db::DbState>, id: i64) -> Result<(), String> {
+    println!("[delete_attendance] 收到删除请求, id: {}", id);
+
+    let conn = super::db::get_connection(&state).map_err(|e| {
+        println!("[delete_attendance] 获取数据库连接失败: {}", e);
+        e.to_string()
+    })?;
+
+    let result = conn.execute("DELETE FROM attendance WHERE id = ?1", params![id]);
+
+    match result {
+        Ok(rows) => {
+            println!("[delete_attendance] 删除成功, 影响行数: {}", rows);
+            Ok(())
+        }
+        Err(e) => {
+            println!("[delete_attendance] 删除失败: {}", e);
+            Err(e.to_string())
+        }
+    }
+}
+
+#[tauri::command]
 pub fn get_attendances(state: tauri::State<super::db::DbState>, year_month: String) -> Result<Vec<Attendance>, String> {
     println!("[get_attendances] 收到查询请求, year_month: '{}'", year_month);
 

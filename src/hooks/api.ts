@@ -79,3 +79,7 @@ export async function batchImportAttendances(attendances: AttendanceImport[]): P
 export async function batchCalculateSalary(employeeIds: number[], yearMonth: string): Promise<SalaryResult[]> {
   return invoke<SalaryResult[]>('batch_calculate_salary', { employeeIds, yearMonth })
 }
+
+export async function deleteAttendance(id: number): Promise<void> {
+  return invoke('delete_attendance', { id })
+}

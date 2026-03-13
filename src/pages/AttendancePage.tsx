@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AttendanceForm, AttendanceRules, AttendanceImportModal } from '../components'
+import { AttendanceForm, AttendanceRules, AttendanceImportModal, ConfirmDialog } from '../components'
 import * as api from '../hooks/api'
 import type { Employee, Attendance } from '../types'
 
@@ -12,6 +12,7 @@ export function AttendancePage() {
   const [showImport, setShowImport] = useState(false)
   const [editingAttendance, setEditingAttendance] = useState<Attendance | null>(null)
   const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   useEffect(() => {
     console.log('[考勤] 开始加载员工列表')
@@ -89,6 +90,18 @@ export function AttendancePage() {
       overtime_hours: 0
     })
     setShowModal(true)
+  }
+
+  const handleDeleteAttendance = async () => {
+    if (deleteId === null) return
+    try {
+      await api.deleteAttendance(deleteId)
+      setDeleteId(null)
+      loadAttendances()
+    } catch (error) {
+      console.error('删除考勤失败:', error)
+      alert('删除失败: ' + error)
+    }
   }
 
   const getEmployeeName = (employeeId: number) => {
@@ -223,19 +236,30 @@ export function AttendancePage() {
                         {att.overtime_hours}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        <button
-                          onClick={() => {
-                            const emp = employees.find(e => e.id === att.employee_id)
-                            if (emp) openEditModal(emp)
-                          }}
-                          className="btn btn-secondary btn-sm"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                          编辑
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => {
+                              const emp = employees.find(e => e.id === att.employee_id)
+                              if (emp) openEditModal(emp)
+                            }}
+                            className="btn btn-secondary btn-sm"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                            编辑
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(att.id!)}
+                            className="btn btn-danger btn-sm"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                            </svg>
+                            删除
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -293,6 +317,16 @@ export function AttendancePage() {
             setShowImport(false)
             loadAttendances()
           }}
+        />
+      )}
+
+      {/* 删除确认弹窗 */}
+      {deleteId !== null && (
+        <ConfirmDialog
+          title="确认删除"
+          message={`确定要删除该考勤记录吗？此操作不可恢复。`}
+          onConfirm={handleDeleteAttendance}
+          onCancel={() => setDeleteId(null)}
         />
       )}
     </div>
