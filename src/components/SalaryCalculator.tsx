@@ -12,6 +12,7 @@ interface SalaryCalculatorProps {
   onYearMonthChange: (yearMonth: string) => void
   onCalculate: () => void
   onBatchCalculate: (employeeIds: number[]) => void
+  onExport?: () => void
 }
 
 export function SalaryCalculator({
@@ -24,7 +25,8 @@ export function SalaryCalculator({
   onSelectEmployees,
   onYearMonthChange,
   onCalculate,
-  onBatchCalculate
+  onBatchCalculate,
+  onExport
 }: SalaryCalculatorProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [showMultiSelect, setShowMultiSelect] = useState(false)
@@ -367,6 +369,20 @@ export function SalaryCalculator({
                   </span>
                 </div>
               </div>
+
+              {/* 导出按钮 */}
+              {onExport && (
+                <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+                  <button onClick={onExport} className="btn btn-secondary w-full">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    导出工资单
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -389,16 +405,32 @@ export function SalaryCalculator({
                   <h3 className="font-semibold text-white text-lg">
                     工资计算结果
                   </h3>
-                  <span
-                    className="badge"
-                    style={{
-                      background: 'rgba(255,255,255,0.2)',
-                      color: 'white',
-                      padding: '6px 14px'
-                    }}
-                  >
-                    {yearMonth} 月 · {salaryList.length} 人
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {onExport && salaryList.length > 0 && (
+                      <button
+                        onClick={onExport}
+                        className="btn btn-sm"
+                        style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        导出
+                      </button>
+                    )}
+                    <span
+                      className="badge"
+                      style={{
+                        background: 'rgba(255,255,255,0.2)',
+                        color: 'white',
+                        padding: '6px 14px'
+                      }}
+                    >
+                      {yearMonth} 月 · {salaryList.length} 人
+                    </span>
+                  </div>
                 </div>
               </div>
 

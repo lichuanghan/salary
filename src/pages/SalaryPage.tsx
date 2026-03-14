@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { SalaryCalculator } from '../components'
 import * as api from '../hooks/api'
+import { exportSalaries } from '../hooks/useExcel'
 import type { Employee, SalaryResult } from '../types'
 
 export function SalaryPage() {
@@ -47,6 +48,20 @@ export function SalaryPage() {
     setSalaryList([])
   }
 
+  const handleExport = async () => {
+    try {
+      const dataToExport = salaryResult ? [salaryResult] : salaryList
+      if (dataToExport.length === 0) {
+        alert('没有可导出的数据')
+        return
+      }
+      await exportSalaries(dataToExport, yearMonth)
+    } catch (error) {
+      console.error('导出工资失败:', error)
+      alert('导出失败: ' + error)
+    }
+  }
+
   return (
     <div className="space-y-6" style={{ position: 'relative', zIndex: 1 }}>
       {/* 标题 */}
@@ -78,6 +93,7 @@ export function SalaryPage() {
             onYearMonthChange={setYearMonth}
             onCalculate={handleCalculate}
             onBatchCalculate={handleBatchCalculate}
+            onExport={handleExport}
           />
         </div>
       </div>

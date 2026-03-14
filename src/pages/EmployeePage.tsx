@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { EmployeeList, EmployeeForm, EmployeeImportModal } from '../components'
 import * as api from '../hooks/api'
+import { exportEmployees } from '../hooks/useExcel'
 import type { Employee } from '../types'
 
 export function EmployeePage() {
@@ -79,6 +80,15 @@ export function EmployeePage() {
     }
   }
 
+  const handleExport = async () => {
+    try {
+      await exportEmployees(filteredEmployees)
+    } catch (error) {
+      console.error('导出员工失败:', error)
+      alert('导出失败: ' + error)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* 标题 */}
@@ -102,6 +112,7 @@ export function EmployeePage() {
             onDelete={handleDeleteEmployee}
             onAdd={() => setShowModal(true)}
             onImport={() => setShowImport(true)}
+            onExport={handleExport}
             searchKeyword={searchKeyword}
             onSearch={handleSearch}
           />

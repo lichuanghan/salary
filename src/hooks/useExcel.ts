@@ -215,3 +215,126 @@ export async function generateAttendanceTemplate(): Promise<void> {
     await writeFile(filePath, new Uint8Array(wbout))
   }
 }
+
+// 导出员工数据
+export async function exportEmployees(employees: any[]): Promise<void> {
+  const data = employees.map(emp => ({
+    '员工编号': emp.employee_no || '',
+    '姓名': emp.name || '',
+    '身份证号': emp.id_card || '',
+    '城市': emp.city || '',
+    '部门': emp.department || '',
+    '职位': emp.position || '',
+    '入职时间': emp.entry_date || '',
+    '固定工资': emp.fixed_salary || 0,
+    '绩效工资': emp.performance_salary || 0,
+    '状态': emp.status === 'active' ? '在职' : '离职'
+  }))
+
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '员工数据')
+
+  // 设置列宽
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 10 },
+    { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+    { wch: 12 }, { wch: 8 }
+  ]
+
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+
+  const exportFilePath = await save({
+    defaultPath: `员工数据_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }]
+  })
+
+  if (exportFilePath) {
+    await writeFile(exportFilePath, new Uint8Array(wbout))
+  }
+}
+
+// 导出考勤数据
+export async function exportAttendances(attendances: any[], employees: any[], yearMonth: string): Promise<void> {
+  const data = attendances.map(att => {
+    const emp = employees.find(e => e.id === att.employee_id)
+    return {
+      '员工编号': emp?.employee_no || '',
+      '姓名': emp?.name || '',
+      '考勤月份': att.year_month || '',
+      '应出勤天数': att.work_days || 0,
+      '实际出勤天数': att.normal_days || 0,
+      '事假天数': att.sick_leave_days || 0,
+      '迟到次数': att.late_count || 0,
+      '早退次数': att.early_leave_count || 0,
+      '加班小时数': att.overtime_hours || 0
+    }
+  })
+
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '考勤数据')
+
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 12 },
+    { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }
+  ]
+
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+
+  const exportFilePath = await save({
+    defaultPath: `考勤数据_${yearMonth}.xlsx`,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }]
+  })
+
+  if (exportFilePath) {
+    await writeFile(exportFilePath, new Uint8Array(wbout))
+  }
+}
+
+// 导出工资数据
+export async function exportSalaries(salaryList: any[], yearMonth: string): Promise<void> {
+  const data = salaryList.map(item => ({
+    '员工姓名': item.employee_name || '',
+    '考勤月份': item.year_month || yearMonth,
+    '固定薪酬': item.fixed_salary || 0,
+    '绩效薪酬': item.performance_salary || 0,
+    '考勤扣款': item.attendance_deduction || 0,
+    '实发工资': item.net_salary || 0
+  }))
+
+  // 添加合计行
+  const totalFixed = salaryList.reduce((sum, item) => sum + (item.fixed_salary || 0), 0)
+  const totalPerformance = salaryList.reduce((sum, item) => sum + (item.performance_salary || 0), 0)
+  const totalDeduction = salaryList.reduce((sum, item) => sum + (item.attendance_deduction || 0), 0)
+  const totalNet = salaryList.reduce((sum, item) => sum + (item.net_salary || 0), 0)
+
+  data.push({
+    '员工姓名': '合计',
+    '考勤月份': '',
+    '固定薪酬': totalFixed,
+    '绩效薪酬': totalPerformance,
+    '考勤扣款': totalDeduction,
+    '实发工资': totalNet
+  })
+
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '工资数据')
+
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 12 }, { wch: 12 },
+    { wch: 12 }, { wch: 12 }, { wch: 14 }
+  ]
+
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+
+  const exportFilePath = await save({
+    defaultPath: `工资数据_${yearMonth}.xlsx`,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }]
+  })
+
+  if (exportFilePath) {
+    await writeFile(exportFilePath, new Uint8Array(wbout))
+  }
+}
