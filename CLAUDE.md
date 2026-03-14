@@ -37,6 +37,7 @@ cargo run           # 直接运行 Rust 后端
 - **前端**: React 19.x + TypeScript + Tailwind CSS 4.x + Vite 8.x
 - **后端**: Rust (Tauri 2.x) + edition 2024
 - **数据库**: SQLite (bundled rusqlite)
+- **Excel 处理**: xlsx 库
 
 ### 项目结构
 ```
@@ -44,14 +45,31 @@ salary/
 ├── src/                    # React 前端
 │   ├── components/         # UI 组件
 │   │   ├── Layout.tsx     # 布局组件
+│   │   ├── Sidebar.tsx    # 侧边栏导航
 │   │   ├── EmployeeList.tsx
 │   │   ├── EmployeeForm.tsx
+│   │   ├── EmployeeImportModal.tsx
 │   │   ├── AttendanceForm.tsx
-│   │   └── SalaryCalculator.tsx
+│   │   ├── AttendanceRules.tsx
+│   │   ├── AttendanceImportModal.tsx
+│   │   ├── SalaryCalculator.tsx
+│   │   ├── MonthPicker.tsx    # 月份选择器
+│   │   ├── Pagination.tsx     # 分页组件
+│   │   ├── ConfirmDialog.tsx
+│   │   └── PageContainer.tsx
 │   ├── pages/              # 页面
-│   │   └── HomePage.tsx
-│   ├── hooks/              # API 调用
-│   │   └── api.ts
+│   │   ├── DashboardPage.tsx  # 仪表盘
+│   │   ├── EmployeePage.tsx   # 员工管理
+│   │   ├── AttendancePage.tsx # 考勤管理
+│   │   ├── SalaryPage.tsx     # 工资核算
+│   │   ├── TaxPage.tsx       # 个税计算
+│   │   ├── InsurancePage.tsx # 社保计算
+│   │   ├── ReportPage.tsx    # 报表
+│   │   └── SettingsPage.tsx  # 设置
+│   ├── hooks/              # 钩子函数
+│   │   ├── api.ts          # API 调用
+│   │   ├── useExcel.ts     # Excel 导出
+│   │   └── useNavigation.ts
 │   ├── types/              # TypeScript 类型
 │   │   └── index.ts
 │   ├── App.tsx            # 主应用组件
@@ -63,9 +81,11 @@ salary/
 │   │   ├── db.rs          # SQLite 数据库操作
 │   │   └── commands.rs    # Tauri IPC 命令
 │   ├── capabilities/      # Tauri 2.x 权限配置
+│   ├── icons/             # 应用图标
 │   ├── Cargo.toml
 │   └── tauri.conf.json
 ├── docs/superpowers/       # 实现规范和计划文档
+├── app-icon.png           # 应用图标 (1024x1024)
 ├── package.json
 └── vite.config.ts
 ```
@@ -81,18 +101,28 @@ salary/
 - `add_employee` - 添加新员工
 - `update_employee` - 更新员工信息
 - `delete_employee` - 软删除（设置状态为 inactive）
-- `calculate_salary` - 计算月薪（含考勤扣款）
+- `get_attendances` - 获取指定月份的考勤记录
 - `save_attendance` - 保存/更新考勤记录
+- `delete_attendance` - 删除考勤记录
+- `calculate_salary` - 计算单员工月薪（含考勤扣款）
+- `batch_calculate_salary` - 批量计算员工月薪
 
 ### 数据库表结构
-- **employees**: id, name, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status
-- **attendance**: id, employee_id, year_month, work_days, normal_days, sick_leave_days
+- **employees**: id, name, employee_no, id_card, city, department, position, entry_date, fixed_salary, performance_salary, status
+- **attendance**: id, employee_id, year_month, work_days, normal_days, sick_leave_days, late_count, early_leave_count, overtime_hours
 
 ### 工资计算逻辑
 ```
 月薪 = 固定工资 + 绩效工资 - 考勤扣款
 考勤扣款 = 请假天数 × (固定工资 ÷ 21.75)
 ```
+
+### 功能特性
+- 员工管理：增删改查、批量导入导出
+- 考勤管理：月度考勤记录、批量导入导出
+- 工资核算：单员工/批量计算、导出工资单
+- 月份选择：自定义日历组件
+- 分页功能：支持手动输入分页大小
 
 ## 开发注意事项
 
@@ -101,3 +131,4 @@ salary/
 - 使用 Tauri 2.x（请检查 package.json 和 Cargo.toml 版本匹配）
 - Windows 交叉编译需要安装 `x86_64-pc-windows-gnu` 目标
 - 图标生成：需要 1024x1024 的 PNG 源文件，使用 `npx tauri icon` 自动生成所有格式
+- 新增组件需要在 `components/index.ts` 中导出

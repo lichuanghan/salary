@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>薪酬管理系统 Logo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #1a1814 0%, #0d0c0a 100%);
+            font-family: 'Noto Sans SC', sans-serif;
+            padding: 40px;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-bg {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: linear-gradient(145deg,
+                #b8860b 0%,
+                #daa520 15%,
+                #ffd700 30%,
+                #fff8dc 45%,
+                #ffd700 55%,
+                #daa520 70%,
+                #b8860b 85%,
+                #8b6914 100%
+            );
+            box-shadow:
+                0 20px 60px rgba(218, 165, 32, 0.4),
+                0 0 80px rgba(255, 215, 0, 0.2),
+                inset 0 -10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 10px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-inner {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1814 0%, #0d0c0a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .yen-symbol {
+            font-size: 140px;
+            font-weight: 300;
+            background: linear-gradient(180deg,
+                #fff8dc 0%,
+                #ffd700 20%,
+                #daa520 50%,
+                #b8860b 80%,
+                #8b6914 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 4px rgba(218, 165, 32, 0.5));
+            position: relative;
+            letter-spacing: -8px;
+        }
+
+        .yen-symbol::after {
+            content: '¥';
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(255, 215, 0, 0.2) 50%,
+                transparent 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .shine {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 255, 255, 0.3) 0%,
+                transparent 70%
+            );
+            top: 20px;
+            right: 40px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .ring {
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            border: 1px solid rgba(218, 165, 32, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .ring-1 {
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .ring-2 {
+            width: 380px;
+            height: 380px;
+            animation: pulse 4s ease-in-out infinite 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.02);
+            }
+        }
+
+        .text {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .text h1 {
+            font-size: 28px;
+            font-weight: 500;
+            background: linear-gradient(180deg, #fff8dc 0%, #daa520 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 8px;
+        }
+
+        .text p {
+            font-size: 12px;
+            color: rgba(218, 165, 32, 0.6);
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+
+        /* App icon variant */
+        .app-icon {
+            width: 128px;
+            height: 128px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, #1a1814 0%, #0d0c0a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(218, 165, 32, 0.3);
+        }
+
+        .app-icon .yen {
+            font-size: 56px;
+            font-weight: 300;
+            background: linear-gradient(180deg,
+                #fff8dc 0%,
+                #ffd700 30%,
+                #daa520 70%,
+                #b8860b 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -4px;
+        }
+
+        .app-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                transparent 100%
+            );
+            border-radius: 28px 28px 0 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Logo -->
+    <div class="logo-container">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="logo-bg"></div>
+        <div class="logo-inner">
+            <span class="yen-symbol">¥</span>
+        </div>
+        <div class="shine"></div>
+    </div>
+
+    <div class="text">
+        <h1>薪酬管理系统</h1>
+        <p>SALARY MANAGEMENT</p>
+    </div>
+
+    <!-- Small App Icon -->
+    <div style="margin-top: 60px; display: flex; align-items: center; gap: 20px;">
+        <div class="app-icon">
+            <span class="yen">¥</span>
+        </div>
+        <div style="text-align: left;">
+            <p style="color: rgba(218, 165, 32, 0.8); font-size: 14px; margin-bottom: 4px;">App Icon 128x128</p>
+            <p style="color: rgba(218, 165, 32, 0.5); font-size: 11px;">For desktop & mobile</p>
+        </div>
+    </div>
+</body>
+</html>

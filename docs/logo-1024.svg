@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#b8860b"/>
+      <stop offset="25%" style="stop-color:#daa520"/>
+      <stop offset="50%" style="stop-color:#ffd700"/>
+      <stop offset="75%" style="stop-color:#daa520"/>
+      <stop offset="100%" style="stop-color:#8b6914"/>
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1814"/>
+      <stop offset="100%" style="stop-color:#0d0c0a"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.3)"/>
+      <stop offset="100%" style="stop-color:transparent"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="450" fill="url(#goldGradient)"/>
+
+  <!-- Inner dark circle -->
+  <circle cx="512" cy="512" r="380" fill="url(#bgGradient)"/>
+
+  <!-- Shine effect -->
+  <ellipse cx="450" cy="350" rx="180" ry="150" fill="url(#shine)" opacity="0.3"/>
+
+  <!-- ¥ Symbol -->
+  <text x="512" y="620"
+        font-family="Arial, sans-serif"
+        font-size="420"
+        font-weight="300"
+        fill="url(#goldGradient)"
+        text-anchor="middle"
+        filter="url(#glow)"
+        letter-spacing="-20">¥</text>
+
+  <!-- Outer ring -->
+  <circle cx="512" cy="512" r="460" fill="none" stroke="#daa520" stroke-width="3" opacity="0.4"/>
+</svg>
