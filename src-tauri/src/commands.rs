@@ -349,11 +349,21 @@ pub fn save_attendance(state: tauri::State<super::db::DbState>, attendance: Atte
         e.to_string()
     })?;
 
-    println!("[save_attendance] 执行SQL: INSERT OR REPLACE INTO attendance");
-    let result = conn.execute(
-        "INSERT OR REPLACE INTO attendance (employee_id, year_month, work_days, normal_days, sick_leave_days, late_count, early_leave_count, overtime_hours) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-        params![attendance.employee_id, attendance.year_month, attendance.work_days, attendance.normal_days, attendance.sick_leave_days, attendance.late_count, attendance.early_leave_count, attendance.overtime_hours],
-    );
+    let result = if let Some(id) = attendance.id {
+        // 更新现有记录
+        println!("[save_attendance] 执行SQL: UPDATE attendance WHERE id = {}", id);
+        conn.execute(
+            "UPDATE attendance SET employee_id = ?1, year_month = ?2, work_days = ?3, normal_days = ?4, sick_leave_days = ?5, late_count = ?6, early_leave_count = ?7, overtime_hours = ?8 WHERE id = ?9",
+            params![attendance.employee_id, attendance.year_month, attendance.work_days, attendance.normal_days, attendance.sick_leave_days, attendance.late_count, attendance.early_leave_count, attendance.overtime_hours, id],
+        )
+    } else {
+        // 插入新记录
+        println!("[save_attendance] 执行SQL: INSERT INTO attendance");
+        conn.execute(
+            "INSERT INTO attendance (employee_id, year_month, work_days, normal_days, sick_leave_days, late_count, early_leave_count, overtime_hours) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![attendance.employee_id, attendance.year_month, attendance.work_days, attendance.normal_days, attendance.sick_leave_days, attendance.late_count, attendance.early_leave_count, attendance.overtime_hours],
+        )
+    };
 
     match result {
         Ok(rows) => {
