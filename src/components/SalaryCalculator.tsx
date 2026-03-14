@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Employee, SalaryResult } from '../types'
 import { Pagination } from './Pagination'
+import { MonthPicker } from './MonthPicker'
 
 interface SalaryCalculatorProps {
   employees: Employee[]
@@ -116,11 +117,9 @@ export function SalaryCalculator({
               </svg>
               核算月份
             </label>
-            <input
-              type="month"
+            <MonthPicker
               value={yearMonth}
-              onChange={(e) => onYearMonthChange(e.target.value)}
-              className="input select"
+              onChange={onYearMonthChange}
               style={{
                 backgroundColor: 'var(--color-bg-primary)',
                 fontSize: '16px',

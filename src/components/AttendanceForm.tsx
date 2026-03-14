@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Attendance, Employee } from '../types'
+import { MonthPicker } from './MonthPicker'
 
 interface AttendanceFormProps {
   employees: Employee[]
@@ -103,12 +104,9 @@ export function AttendanceForm({ employees, yearMonth, employeeName, initialData
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                 考勤月份 <span style={{ color: 'var(--color-danger)' }}>*</span>
               </label>
-              <input
-                type="month"
+              <MonthPicker
                 value={formData.year_month || yearMonth}
-                onChange={(e) => setFormData({ ...formData, year_month: e.target.value })}
-                className="input select"
-                style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                onChange={(val) => setFormData({ ...formData, year_month: val })}
               />
             </div>
 

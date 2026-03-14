@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { AttendanceForm, AttendanceRules, AttendanceImportModal, ConfirmDialog, Pagination } from '../components'
+import { AttendanceForm, AttendanceRules, AttendanceImportModal, ConfirmDialog, Pagination, MonthPicker } from '../components'
 import * as api from '../hooks/api'
 import { exportAttendances } from '../hooks/useExcel'
 import type { Employee, Attendance } from '../types'
@@ -151,19 +151,16 @@ export function AttendancePage() {
       </div>
 
       {/* 筛选区域 */}
-      <div className="animate-scale" style={{ animationDelay: '50ms' }}>
-        <div className="card" style={{ padding: '20px' }}>
+      <div className="animate-scale" style={{ animationDelay: '50ms', position: 'relative', zIndex: 100 }}>
+        <div className="card" style={{ padding: '20px', overflow: 'visible' }}>
           <div className="flex items-center gap-4">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                 考勤月份
               </label>
-              <input
-                type="month"
+              <MonthPicker
                 value={yearMonth}
-                onChange={(e) => setYearMonth(e.target.value)}
-                className="input select"
-                style={{ backgroundColor: 'var(--color-bg-secondary)', width: '160px' }}
+                onChange={setYearMonth}
               />
             </div>
             <div className="flex-1" />

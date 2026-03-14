@@ -40,17 +40,31 @@ export function Pagination({
           共 {totalItems} 条
         </span>
         {onPageSizeChange && (
-          <select
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="input select"
-            style={{ padding: '4px 8px', fontSize: '13px', height: '32px', whiteSpace: 'nowrap', width: '90px', minWidth: '90px', position: 'relative', zIndex: 100 }}
-          >
-            <option value={10}>10 条/页</option>
-            <option value={20}>20 条/页</option>
-            <option value={50}>50 条/页</option>
-            <option value={100}>100 条/页</option>
-          </select>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              value={pageSize}
+              onChange={(e) => {
+                const val = Math.max(1, Math.min(1000, Number(e.target.value) || 10))
+                onPageSizeChange(val)
+              }}
+              onBlur={(e) => {
+                const val = Math.max(1, Math.min(1000, Number(e.target.value) || 10))
+                onPageSizeChange(val)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = Math.max(1, Math.min(1000, Number((e.target as HTMLInputElement).value) || 10))
+                  onPageSizeChange(val)
+                }
+              }}
+              className="input"
+              style={{ padding: '4px 8px', fontSize: '13px', height: '32px', width: '60px', minWidth: '60px', textAlign: 'center', position: 'relative', zIndex: 100 }}
+              min={1}
+              max={1000}
+            />
+            <span className="text-sm" style={{ color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>条/页</span>
+          </div>
         )}
       </div>
 

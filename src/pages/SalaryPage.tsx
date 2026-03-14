@@ -93,7 +93,7 @@ export function SalaryPage() {
 
       {/* 工资计算器 */}
       <div className="animate-scale" style={{ animationDelay: '50ms', position: 'relative', zIndex: 1 }}>
-        <div className="card" style={{ padding: '24px', position: 'relative', zIndex: 1 }}>
+        <div className="card" style={{ padding: '24px', position: 'relative', zIndex: 1, overflow: 'visible' }}>
           <SalaryCalculator
             employees={employees}
             selectedEmployee={selectedEmployee}
