@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { AttendanceForm, AttendanceRules, AttendanceImportModal, ConfirmDialog } from '../components'
+import { useState, useEffect, useMemo } from 'react'
+import { AttendanceForm, AttendanceRules, AttendanceImportModal, ConfirmDialog, Pagination } from '../components'
 import * as api from '../hooks/api'
 import { exportAttendances } from '../hooks/useExcel'
 import type { Employee, Attendance } from '../types'
@@ -14,6 +14,8 @@ export function AttendancePage() {
   const [editingAttendance, setEditingAttendance] = useState<Attendance | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     console.log('[考勤] 开始加载员工列表')
@@ -112,6 +114,23 @@ export function AttendancePage() {
       console.error('导出考勤失败:', error)
       alert('导出失败: ' + error)
     }
+  }
+
+  // Calculate paginated data
+  const paginatedAttendances = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return attendances.slice(start, start + pageSize)
+  }, [attendances, currentPage, pageSize])
+
+  const totalPages = Math.ceil(attendances.length / pageSize)
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
   }
 
   const getEmployeeName = (employeeId: number) => {
@@ -226,7 +245,7 @@ export function AttendancePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {attendances.map((att) => (
+                  {paginatedAttendances.map((att) => (
                     <tr key={att.id}>
                       <td>
                         <div className="flex items-center gap-3">
@@ -302,6 +321,18 @@ export function AttendancePage() {
                 点击上方"录入考勤"按钮添加考勤记录
               </p>
             </div>
+          )}
+
+          {/* 分页 */}
+          {attendances.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={attendances.length}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
           )}
         </div>
       </div>

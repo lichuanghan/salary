@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { EmployeeList, EmployeeForm, EmployeeImportModal } from '../components'
 import * as api from '../hooks/api'
 import { exportEmployees } from '../hooks/useExcel'
@@ -12,6 +12,8 @@ export function EmployeePage() {
   const [showImport, setShowImport] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     loadEmployees()
@@ -28,7 +30,14 @@ export function EmployeePage() {
         emp.position?.toLowerCase().includes(keyword)
       ))
     }
+    setCurrentPage(1) // Reset to first page when search changes
   }, [searchKeyword, employees])
+
+  // Calculate paginated data
+  const paginatedEmployees = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredEmployees.slice(start, start + pageSize)
+  }, [filteredEmployees, currentPage, pageSize])
 
   const loadEmployees = async () => {
     try {
@@ -89,6 +98,15 @@ export function EmployeePage() {
     }
   }
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }
+
   return (
     <div className="space-y-6">
       {/* 标题 */}
@@ -105,7 +123,7 @@ export function EmployeePage() {
       <div className="animate-scale" style={{ animationDelay: '50ms' }}>
         <div className="card" style={{ padding: '24px' }}>
           <EmployeeList
-            employees={filteredEmployees}
+            employees={paginatedEmployees}
             selectedId={selectedEmployee?.id}
             onSelect={setSelectedEmployee}
             onEdit={(emp) => setEditingEmployee(emp)}
@@ -115,6 +133,11 @@ export function EmployeePage() {
             onExport={handleExport}
             searchKeyword={searchKeyword}
             onSearch={handleSearch}
+            totalItems={filteredEmployees.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         </div>
       </div>

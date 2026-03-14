@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Employee, SalaryResult } from '../types'
+import { Pagination } from './Pagination'
 
 interface SalaryCalculatorProps {
   employees: Employee[]
@@ -7,12 +8,17 @@ interface SalaryCalculatorProps {
   yearMonth: string
   salaryResult: SalaryResult | null
   salaryList: SalaryResult[]
+  totalItems?: number
+  currentPage?: number
+  pageSize?: number
   onSelectEmployee: (employee: Employee | null) => void
   onSelectEmployees: (employeeIds: number[]) => void
   onYearMonthChange: (yearMonth: string) => void
   onCalculate: () => void
   onBatchCalculate: (employeeIds: number[]) => void
   onExport?: () => void
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (size: number) => void
 }
 
 export function SalaryCalculator({
@@ -21,12 +27,17 @@ export function SalaryCalculator({
   yearMonth,
   salaryResult,
   salaryList,
+  totalItems,
+  currentPage,
+  pageSize,
   onSelectEmployee,
   onSelectEmployees,
   onYearMonthChange,
   onCalculate,
   onBatchCalculate,
-  onExport
+  onExport,
+  onPageChange,
+  onPageSizeChange
 }: SalaryCalculatorProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [showMultiSelect, setShowMultiSelect] = useState(false)
@@ -389,11 +400,12 @@ export function SalaryCalculator({
           {/* 批量结果 */}
           {salaryList.length > 0 && showMultiSelect && (
             <div
-              className="rounded-2xl overflow-hidden"
+              className="rounded-2xl"
               style={{
                 background: 'var(--color-bg-secondary)',
                 border: '1px solid var(--color-border-light)',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)'
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
+                overflow: 'visible'
               }}
             >
               {/* 表头 */}
@@ -494,6 +506,18 @@ export function SalaryCalculator({
                   </tfoot>
                 </table>
               </div>
+
+              {/* 分页 */}
+              {totalItems !== undefined && onPageChange && onPageSizeChange && (
+                <Pagination
+                  currentPage={currentPage || 1}
+                  totalPages={Math.ceil(totalItems / (pageSize || 10))}
+                  totalItems={totalItems}
+                  pageSize={pageSize || 10}
+                  onPageChange={onPageChange}
+                  onPageSizeChange={onPageSizeChange}
+                />
+              )}
             </div>
           )}
 

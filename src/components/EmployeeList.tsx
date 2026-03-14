@@ -1,4 +1,5 @@
 import type { Employee } from '../types'
+import { Pagination } from './Pagination'
 
 interface EmployeeListProps {
   employees: Employee[]
@@ -11,9 +12,30 @@ interface EmployeeListProps {
   onExport?: () => void
   searchKeyword?: string
   onSearch?: (keyword: string) => void
+  totalItems?: number
+  currentPage?: number
+  pageSize?: number
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (size: number) => void
 }
 
-export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete, onAdd, onImport, onExport, searchKeyword, onSearch }: EmployeeListProps) {
+export function EmployeeList({
+  employees,
+  selectedId,
+  onSelect,
+  onEdit,
+  onDelete,
+  onAdd,
+  onImport,
+  onExport,
+  searchKeyword,
+  onSearch,
+  totalItems,
+  currentPage,
+  pageSize,
+  onPageChange,
+  onPageSizeChange
+}: EmployeeListProps) {
   return (
     <div>
       {/* 头部 */}
@@ -182,6 +204,18 @@ export function EmployeeList({ employees, selectedId, onSelect, onEdit, onDelete
           <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>暂无员工</p>
           <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>点击上方"添加员工"按钮创建新员工</p>
         </div>
+      )}
+
+      {/* 分页 */}
+      {onPageChange && totalItems !== undefined && (
+        <Pagination
+          currentPage={currentPage || 1}
+          totalPages={Math.ceil(totalItems / (pageSize || 10))}
+          totalItems={totalItems}
+          pageSize={pageSize || 10}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
       )}
     </div>
   )

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { SalaryCalculator } from '../components'
 import * as api from '../hooks/api'
 import { exportSalaries } from '../hooks/useExcel'
@@ -10,6 +10,8 @@ export function SalaryPage() {
   const [yearMonth, setYearMonth] = useState('2026-03')
   const [salaryResult, setSalaryResult] = useState<SalaryResult | null>(null)
   const [salaryList, setSalaryList] = useState<SalaryResult[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     loadEmployees()
@@ -62,6 +64,21 @@ export function SalaryPage() {
     }
   }
 
+  // Calculate paginated data
+  const paginatedSalaryList = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return salaryList.slice(start, start + pageSize)
+  }, [salaryList, currentPage, pageSize])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }
+
   return (
     <div className="space-y-6" style={{ position: 'relative', zIndex: 1 }}>
       {/* 标题 */}
@@ -82,18 +99,24 @@ export function SalaryPage() {
             selectedEmployee={selectedEmployee}
             yearMonth={yearMonth}
             salaryResult={salaryResult}
-            salaryList={salaryList}
+            salaryList={paginatedSalaryList}
+            totalItems={salaryList.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
             onSelectEmployee={(emp) => {
               console.log('[SalaryPage] onSelectEmployee:', emp)
               setSelectedEmployee(emp)
               setSalaryResult(null)
               setSalaryList([])
+              setCurrentPage(1)
             }}
             onSelectEmployees={handleSelectEmployees}
             onYearMonthChange={setYearMonth}
             onCalculate={handleCalculate}
             onBatchCalculate={handleBatchCalculate}
             onExport={handleExport}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         </div>
       </div>
